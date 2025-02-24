@@ -2,13 +2,13 @@ package util.base;
 
 public class Person {
     public static int idCounter = 0;
-    private int id;
-    private String username;
-    private String password;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String phone;
+    protected int id;
+    protected String username;
+    protected String password;
+    protected String firstName;
+    protected String lastName;
+    protected String email;
+    protected String phone;
 
     public Person(String username, String password) {
         this.username = username;
