@@ -10,14 +10,20 @@ public class Patient extends Person {
     private String dateOfBirth;
     private String address;
     private List<Appointment> appointments; //store all appointments of patient
+    private List<String> medicalHistory; // Store patient's medical records
 
+    //constructor
     public Patient(String username, String password, String firstName, String lastName, String email, String phone, String 
     gender, String dateOfBirth, String address) {
         super(username, password, firstName, lastName, email, phone);
         this.gender = gender;
         this.dateOfBirth = dateOfBirth;
         this.address = address;
+        this.appointments = new ArrayList<>(); //initialize appointment lists
+        this.medicalHistory = new ArrayList<>(); //initialize medical history
     }
+
+    //getter
     public int getId() {
         return id;
     }
@@ -27,15 +33,45 @@ public class Patient extends Person {
     public String getLastName() {
         return lastName;
     }
+
+    //Method to display patient detail
+    public void displayPatientDetails() {
+        System.out.println("Patient ID: " + id);
+        System.out.println("Name: " + firstName + " " + lastName);
+        System.out.println("Date of Birth: " + dateOfBirth);
+    }
+
+    // Method to View Patient's Medical History
+    public void viewMedicalHistory() {
+        System.out.println("Medical History for " + firstName + " " + lastName + ":");
+        
+        if (medicalHistory.isEmpty()) {
+            System.out.println("No medical history found!");
+        } else {
+            for (String record : medicalHistory) {
+                System.out.println(record);
+            }
+        }
+            
+    }
+
+    // Method to Add appointment
     public void addAppointment(Appointment appointment) {
         if(appointments == null) {
             appointments = new ArrayList<>();
         }
         appointments.add(appointment);
     }
-    public void showAppointments() {
-        for (Appointment appointment : appointments) {
-            appointment.displayAppointmentDetails();
+
+     // Method to show all appointments
+     public void showAppointments() {
+        System.out.println("Appointments for " + firstName + " " + lastName + ":");
+        if (appointments.isEmpty()) {
+            System.out.println("No appointments found.");
+        } else {
+            for (Appointment appointment : appointments) {
+                appointment.displayAppointmentDetails();
+            }
         }
     }
 }
