@@ -155,8 +155,28 @@ public class Inventory {
     }
 
     //checking quantity in stock by ID
-    public void quantityCheck(int inventoryId, String itemName, int quantity){
+    public void quantityCheck(){
          System.out.println("Stock left for " + inventoryId + " (" + itemName + "): " + quantity);
+    }
+
+    public void quantityCheckByID(int inventoryId){
+        for(Inventory item : inventoryList){
+            if(item.getInventoryId() == inventoryId){
+                item.quantityCheck();
+                return;
+            }
+        }
+        System.out.println("Item with ID " + inventoryId + " not found.");
+    }
+
+    public void quantityCheckByName(String itemName){
+        for(Inventory item : inventoryList){
+            if(item.getItemName() == itemName){
+                item.quantityCheck();
+                return;
+            }
+        }
+        System.out.println("Item with Name " + itemName + " not found.");
     }
 
     //checking stock level

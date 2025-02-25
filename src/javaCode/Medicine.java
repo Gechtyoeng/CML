@@ -163,4 +163,22 @@ public class Medicine {
         }
     }
 
+    public void searchMedByID(int medicineId){
+        for(Medicine med : medList){
+            if(med.getMedicineID() == medicineId){
+                System.out.println("Item found: " + med.getMedicineName());
+            }
+        }
+        System.out.println("Medicine with ID " + medicineId + " not found.");
+    }
+
+    public void searchMedByName(String medicineName){
+        for(Medicine med : medList){
+            if(med.getMedicineName().equalsIgnoreCase(medicineName)){
+                System.out.println("Item found: " + med.getMedicineName());
+            }
+        }
+        System.out.println("Medicine with name " + medicineName + " not found.");
+    }
+
 }
