@@ -1,8 +1,6 @@
 package javaCode;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
@@ -114,18 +112,6 @@ public class Billing {
 
     //Patient history and detail (connect to database)
     public void getBillingDetails(Connection conn) throws SQLException {
-        String sql = "SELECT * FROM Billing WHERE billingID = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, billingId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                System.out.println("Billing ID: " + rs.getInt("billingID"));
-                System.out.println("Patient ID: " + rs.getInt("patientID"));
-                System.out.println("Total Amount: $" + rs.getDouble("totalAmount"));
-                System.out.println("Outstanding Balance: $" + rs.getDouble("outstandingBalance"));
-                System.out.println("Payment Status: " + rs.getString("paymentStatus"));
-            }
-        }
     }
 
     //Check patient pending payment
