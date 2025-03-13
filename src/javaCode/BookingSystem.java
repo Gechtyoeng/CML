@@ -1,23 +1,42 @@
 package javaCode;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
+//this booking system can be used by admin and doctor
+//admin can book a patient with any doctor while doctors can only book for themselves
 
 public class BookingSystem {
-    private Admin admin;
-    BookingSystem(Admin admin){
-        this.admin = admin;
+    //booking for doctor role
+    public void doctorBook(Doctor doctor){
+        List<Patient> doctorPatients = doctor.getAppointments().stream()
+                .map(Appointment::getPatient)
+                .distinct() 
+                .toList(); // Convert to List
+
+    if (doctorPatients.isEmpty()) {
+        System.out.println("You have no patients with existing appointments.");
+        return;
     }
-    public void bookAppointment(){
+        bookAppointment(doctorPatients, null, doctor);
+    }
+    //booking for admin role
+    public void adminBook(Admin admin){
+        bookAppointment(admin.getPatients(), admin.getDoctors(), null);
+    }
+    //processing the booking
+    private void bookAppointment(List<Patient> patients, List<Doctor> doctors, Doctor isDoctor){
         Scanner scanner = new Scanner(System.in);
         //get patient by input patient id
-        List<Patient> patients = admin.getPatients();
-        System.out.println("Enter patient ID: ");
+        System.out.print("Enter patient ID: ");
         int patientId = scanner.nextInt();
+        scanner.nextLine();
+
         Patient selectedPatient = null;
         for (Patient patient : patients) {
             if(patient.getId() == patientId) {
@@ -29,15 +48,18 @@ public class BookingSystem {
             System.out.println("Patient not found");
             return;
         }
-        //get doctor by list down the doctor and let patient select the doctor
-        List<Doctor> doctors = admin.getDoctors();
-        System.out.println("Select a doctor to book an appointment");
+        //get doctor by list down the doctor and let patient select the doctor if admin
+        Doctor selectedDoctor = null;
+        // if doctors book for themselves let the selected doctor = this doctor
+        if(isDoctor == null){
+            System.out.println("Select a doctor:");
         for (Doctor doctor : doctors) {
             doctor.displayDoctorDetails();
         }
-        System.out.println("Enter the doctor ID: ");
+
+        System.out.print("Enter the doctor ID: ");
         int doctorId = scanner.nextInt();
-        Doctor selectedDoctor = null;
+        scanner.nextLine();
         for (Doctor doctor : doctors) {
             if(doctor.getId() == doctorId) {
                 selectedDoctor = doctor;
@@ -45,65 +67,70 @@ public class BookingSystem {
             }
         }
         if(selectedDoctor == null) {
-            System.out.println("Doctor not found");
+            System.out.println("Doctor not found!");
             return;
         } 
+        }else{
+            selectedDoctor = isDoctor;
+        }
+        
         //get appointment date
-        System.out.println("Enter appointment date (yyyy-MM-dd): ");
+        System.out.print("Enter appointment date (dd-MM-yyyy): ");
         String dateInput = scanner.next();
-        LocalDate appointmentDate = isvaliDate(dateInput);
+        LocalDate appointmentDate = isvalidDate(dateInput);
         if(appointmentDate == null) {
             return;
         }
         //get appointment time
-        System.out.println("Enter appointment time (HH:mm): ");
+        System.out.print("Enter appointment time (HH:mm): ");
         String timeInput = scanner.next(); 
-        LocalTime appointmentTime = isValiiTime(timeInput);
+        //get the duration
+        System.out.print("Please enter your expected duration minutes:");
+        int minutes = scanner.nextInt();
+        Duration duration = Duration.ofMinutes(minutes);
+
+        LocalTime appointmentTime = isValidTime(timeInput);
         //booking if all the input is valid
         if(selectedDoctor != null && appointmentDate != null && appointmentTime != null){
-            if(isDoctorAvailiable(selectedDoctor, appointmentDate, appointmentTime)){
-                Appointment appointment = new Appointment(selectedPatient, selectedDoctor, appointmentDate.atTime(appointmentTime), "Scheduled");
+            if(isDoctorAvailiable(selectedDoctor, appointmentDate, appointmentTime, duration)){
+                Appointment appointment = new Appointment(selectedPatient, selectedDoctor, appointmentDate.atTime(appointmentTime),duration, "Scheduled");
                 selectedDoctor.addAppointment(appointment);
                 selectedPatient.addAppointment(appointment);
                 System.out.println("Appointment booked successfully");
             }
         }
+        scanner.close();
     }
-
-    public LocalDate isvaliDate(String dateInput){
+//valid the date input format
+    public LocalDate isvalidDate(String dateInput){
         try{
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
             LocalDate appointmentDate = LocalDate.parse(dateInput, formatter);
 
              // Check if the date is in the past
-             if (appointmentDate.isBefore(LocalDate.now())) {
-                System.out.println("Invalid date! You cannot book an appointment in the past.");
+            if (appointmentDate.isBefore(LocalDate.now())) {
+                System.out.println("Invalid date! You entered the past date!");
                 return null;
             }
-            //check is the date is given is valid for the given year and month
-            if(appointmentDate.getDayOfMonth() > appointmentDate.lengthOfMonth() || 
-               appointmentDate.getMonthValue() > 12 || appointmentDate.getMonthValue() < 1){
-                System.out.println("Invalid date! The date you entered the wrong date.");
-                return null;
-            }
+            
              return appointmentDate;
         } catch (DateTimeParseException e) {
-            System.out.println("Invalid date format! Please use yyyy-MM-dd.");
+            System.out.println("Invalid date format! Please use dd-MM-yyyy.");
             return null;
         }
     }
 
-    public LocalTime isValiiTime(String timeInput){
+    public LocalTime isValidTime(String timeInput){
         try{
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
             LocalTime appointmentTime = LocalTime.parse(timeInput, formatter);
 
             //check if the time is during working hours
-            if(appointmentTime.isBefore(LocalTime.of(9, 0)) || appointmentTime.isAfter(LocalTime.of(11, 0)) ||
-               appointmentTime.isBefore(LocalTime.of(14, 0)) || appointmentTime.isAfter(LocalTime.of(17, 0))){
-                System.out.println("Invalid time! Doctors are only available between 9:00-11:00 and 14:00-17:00.");
-                return null;
-            }
+            if (!((appointmentTime.isAfter(LocalTime.of(8, 59)) && appointmentTime.isBefore(LocalTime.of(11, 0))) ||
+            (appointmentTime.isAfter(LocalTime.of(13, 59)) && appointmentTime.isBefore(LocalTime.of(17, 0))))) {
+            System.out.println("Invalid time! Doctors are only available between 9:00-11:00 and 14:00-17:00.");
+            return null;
+        }
             return appointmentTime;
 
         } catch (DateTimeParseException e) {
@@ -112,15 +139,20 @@ public class BookingSystem {
         }
     }
     
-    public boolean isDoctorAvailiable(Doctor doctor, LocalDate appointmentDate, LocalTime timeInput){
+    public boolean isDoctorAvailiable(Doctor doctor, LocalDate appointmentDate, LocalTime startTime, Duration duration){
         List<Appointment> appointments = doctor.getAppointments();
+        LocalTime endTime = startTime.plus(duration);
         for (Appointment appointment : appointments) {
-            if(appointment.getAppointmentDate().toLocalDate().equals(appointmentDate) && 
-               appointment.getAppointmentDate().toLocalTime().equals(timeInput)){
-                System.out.println("Doctor is not available at this time.");
+            LocalDateTime existingStart = appointment.getAppointmentDate();
+            LocalDateTime existingEnd = appointment.getAppointmentDate().plus(appointment.getDuration());
+
+            LocalDateTime currentStart = appointmentDate.atTime(startTime);
+            LocalDateTime currentEnd = appointmentDate.atTime(endTime);
+            if (currentStart.isBefore(existingEnd) && currentEnd.isAfter(existingStart)) {
                 return false;
             }
         }
         return true;
     }
+   
 }

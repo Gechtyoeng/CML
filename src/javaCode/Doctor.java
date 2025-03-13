@@ -8,11 +8,16 @@ public class Doctor extends Person{
     private String specialization;
     private List<Appointment> appointments;
 
-    public Doctor(String username, String password, String firstName, String lastName, String email, String phone, String specialization) {
-        super(username, password, firstName, lastName, email, phone);
+    public Doctor(String username, String password, String firstName, String lastName,
+         String email, String phone, String specialization) {
+        super(username, password, firstName, lastName, email, phone,"Doctor");
         this.specialization = specialization;
     }
-
+    @Override
+    public boolean signUp() {
+        // TODO Auto-generated method stub
+        return super.signUp();
+    }
     public int getId() {
         return id;
     }
@@ -26,6 +31,7 @@ public class Doctor extends Person{
         return specialization;
     }
     public void displayDoctorDetails() {
+        System.out.println("===========================");
         System.out.println("Doctor ID: " + id);
         System.out.println("Name: " + firstName + " " + lastName);
         System.out.println("Specialization: " + specialization);
