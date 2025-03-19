@@ -10,15 +10,12 @@ public class Admin extends Person {
     private List<Doctor> doctors = new ArrayList<>();//store all doctors
     private List<Patient> patients = new ArrayList<>();//store all patients
     
-    public Admin(String username, String password, String firstName, String lastName,
-                    String email, String phone, String role) {
-        super(username, password, firstName, lastName, email, phone, role);
+    public Admin(int id,String username, String password, String firstName, String lastName,
+                    String email, String phone) {
+        super(id,username, password, firstName, lastName, email, phone, "Admin");
         this.lastLogin = LocalDate.now();
     }
-    public Admin(String username, String password) {
-        super(username, password,"Admin");
-    }
-    
+
     @Override
     public boolean signUp() {
         if(this.username.equals(username)) {

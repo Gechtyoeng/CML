@@ -11,6 +11,8 @@ import java.util.Scanner;
 //this booking system can be used by admin and doctor
 //admin can book a patient with any doctor while doctors can only book for themselves
 
+import database.AppointmentDao;
+
 public class BookingSystem {
     //booking for doctor role
     public void doctorBook(Doctor doctor){
@@ -94,8 +96,12 @@ public class BookingSystem {
         if(selectedDoctor != null && appointmentDate != null && appointmentTime != null){
             if(isDoctorAvailiable(selectedDoctor, appointmentDate, appointmentTime, duration)){
                 Appointment appointment = new Appointment(selectedPatient, selectedDoctor, appointmentDate.atTime(appointmentTime),duration, "Scheduled");
+                //save appointment to database
+                AppointmentDao.saveAppointment(appointment);
+                //add appointment to doctor and patient list
                 selectedDoctor.addAppointment(appointment);
                 selectedPatient.addAppointment(appointment);
+
                 System.out.println("Appointment booked successfully");
             }
         }

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Person implements Authentication {
-    public static int idCounter = 0;
     protected int id;
     protected String username;
     protected String password;
@@ -16,13 +15,13 @@ public class Person implements Authentication {
     protected String role;
     protected static List<Person> users = new ArrayList<>(); 
 
-    public Person(String username, String password, String role) {
+    public Person(String username, String password, String firstName, String lastName, String email, String phone, String role) {
         this.username = username;
         this.password = password;
         this.role = role;
     }
-    public Person(String username, String password, String firstName, String lastName, String email, String phone, String role) {
-        this.id = idCounter++;
+    public Person(int userId, String username, String password, String firstName, String lastName, String email, String phone, String role) {
+        this.id = userId;
         this.username = username;
         this.password = password;
         this.firstName = firstName;
@@ -41,7 +40,7 @@ public class Person implements Authentication {
     }
     @Override
     public boolean signUp() {
-        // TODO Auto-generated method stub
+
         if (isUsernameTaken(username)) {
             System.out.println("Error: Username '" + username + "' is already taken.");
             return false;
@@ -59,4 +58,29 @@ public class Person implements Authentication {
         }
         return false;
     }
+    public String getUsername(){
+        return this.username;
+    }
+    public String getPassword(){
+        return this.password;
+    }
+    public String getFirstName() {
+        return this.firstName;
+    }
+    public int getId() {
+        return this.id;
+    }
+    public String getLastName() {
+        return this.lastName;
+    }
+    public String getEmail() {
+        return this.email;
+    }
+    public String getPhone() {
+        return this.phone;
+    }
+    public String getRole() {
+        return this.role;
+    }
+    
 }

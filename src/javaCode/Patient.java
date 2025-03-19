@@ -13,36 +13,34 @@ public class Patient extends Person {
     private List<String> medicalHistory; // Store patient's medical records
 
     //constructor
-    public Patient(String username, String password, String firstName, String lastName, String email, String phone, String 
+    public Patient(int id,String username, String password, String firstName, String lastName, String email, String phone, String 
     gender, String dateOfBirth, String address) {
-        super(username, password, firstName, lastName, email, phone,"Patient");
+        super(id,username, password, firstName, lastName, email, phone,"Patient");
         this.gender = gender;
         this.dateOfBirth = dateOfBirth;
         this.address = address;
         this.appointments = new ArrayList<>(); //initialize appointment lists
         this.medicalHistory = new ArrayList<>(); //initialize medical history
     }
-    public int getId() {
-        return id;
-    }
 
     public String getDateOfBirth() {
-        return dateOfBirth;
+        return this.dateOfBirth;
     }
 
     public String getAddress() {
-        return address;
+        return this.address;
     }
 
+    public String getGender(){
+        return this.gender;
+    }
     //Method to display patient detail
     public void displayPatientDetails() {
         System.out.println("Patient ID: " + id);
         System.out.println("Name: " + firstName + " " + lastName);
         System.out.println("Date of Birth: " + dateOfBirth);
     }
-    public String getLastName() {
-        return lastName;
-    }
+   
     public void addAppointment(Appointment appointment) {
         if(appointments == null) {
             appointments = new ArrayList<>();

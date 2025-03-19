@@ -1,8 +1,10 @@
 package javaCode;
 
-public class Receptionist extends Admin{
-    public Receptionist(String username, String password) {
-        super(username, password);
-        this.role = "Receptionist"; // Override Admin role to "Receptionist"
+import util.base.Person;
+
+public class Receptionist extends Person{
+    public Receptionist(int id,String username, String password, String firstName, String lastName,
+                    String email, String phone) {
+        super(id, username, password, firstName, lastName, email, phone, "Receptionist");
     }
 }
