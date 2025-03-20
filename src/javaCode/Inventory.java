@@ -67,10 +67,42 @@ public class Inventory {
 
     //method
 
-    //Add new items
-    public void addItems(Inventory item){
-        inventoryList.add(item);
-        System.out.println("Item " + item.getItemName() + " added sucessfully!");
+    //Add new items by ID
+    public void addItemsByID(Inventory item){
+        boolean found = false;
+
+        for(Inventory existingItem : inventoryList){
+            if(existingItem.getInventoryId() == item.getInventoryId()){
+                existingItem.setQuantity(existingItem.getQuantity() + item.getQuantity());
+                found = true;
+                System.out.println("Item " + item.getItemName() + " added sucessfully!");
+                break;
+            }
+
+            if(!found){
+                inventoryList.add(item);
+                System.out.println("Item " + item.getItemName() + " added sucessfully!");
+            }
+        }
+
+    }
+    //Add new items by Name
+    public void addItemsByName(Inventory item){
+        boolean found = false;
+
+        for(Inventory existingItem : inventoryList){
+            if(existingItem.getItemName().equalsIgnoreCase(item.getItemName())){
+                existingItem.setQuantity(existingItem.getQuantity() + item.getQuantity());
+                found = true;
+                System.out.println("Item " + item.getItemName() + " added sucessfully!");
+                break;
+            }
+
+            if(!found){
+                inventoryList.add(item);
+                System.out.println("Item " + item.getItemName() + " added sucessfully!");
+            }
+        }
 
     }
 
@@ -88,13 +120,42 @@ public class Inventory {
         System.out.println("Item with ID " + inventoryId + " not found.");
     }
 
+    //Update items by Name(Modify quantity, price, or expiry date)
+    public void updateItemsByName(String itemName, int newQuantity, double newPrice, LocalDate newExpiryDate){
+        for(Inventory item : inventoryList){
+            if(item.getItemName().equalsIgnoreCase(itemName)){
+                item.setQuantity(newQuantity);
+                item.setPrice(newPrice);
+                item.setExpiryDate(newExpiryDate);
+                System.out.println("Item updated sucessfully!");
+                return;
+            }
+        }
+        System.out.println("Item with ID " + inventoryId + " not found.");
+    }
+
     //Remove items by ID
-    public void removeItems(int inventoryId){
+    public void removeItemsByID(int inventoryId){
         Iterator <Inventory> iterator = inventoryList.iterator();
 
         while (iterator.hasNext()) {
             Inventory item = iterator.next();
-            if(item.inventoryId == inventoryId){
+            if(item.getInventoryId() == inventoryId){
+                iterator.remove();
+                System.out.println("Item " + item.getItemName() + " removed sucessfully!");
+                return;
+            }
+        }
+        System.out.println("Item with ID " + inventoryId + " not found.");
+    }
+
+    //Remove items by Name
+    public void removeItemsByName(String itemName){
+        Iterator <Inventory> iterator = inventoryList.iterator();
+
+        while (iterator.hasNext()) {
+            Inventory item = iterator.next();
+            if(item.getItemName().equalsIgnoreCase(itemName)){
                 iterator.remove();
                 System.out.println("Item " + item.getItemName() + " removed sucessfully!");
                 return;

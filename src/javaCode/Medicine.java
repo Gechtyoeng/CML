@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.jar.Attributes.Name;
 
 public class Medicine {
     private int medicineId;
@@ -109,12 +110,41 @@ public class Medicine {
         System.out.println("Description: " + description);
     }
 
-    public void addMedicine(Medicine med){
-        medList.add(med);
-        System.out.println("Medicine " + med.getMedicineName() + " added sucessfully!");
+    public void addMedicineByID(Medicine med){
+        boolean found = false;
+        for(Medicine existingMed : medList){
+            if(existingMed.getMedicineID() == med.getMedicineID()){
+                existingMed.setStock(existingMed.getStock() + med.getStock());
+                found = true;
+                System.out.println("Medicine " + med.getMedicineName() + " added sucessfully!");   
+                break;             
+            }
+
+            if(!found){
+                medList.add(med);
+                System.out.println("Medicine " + med.getMedicineName() + " added sucessfully!");
+            }
+        }
+
+    }
+    public void addMedicineByName(Medicine med){
+        boolean found = false;
+        for(Medicine existingMed : medList){
+            if(existingMed.getMedicineName().equalsIgnoreCase(med.getMedicineName())){
+                existingMed.setStock(existingMed.getStock() + med.getStock());
+                found = true;
+                System.out.println("Medicine " + med.getMedicineName() + " added sucessfully!");   
+                break;             
+            }
+
+            if (!found) {
+                medList.add(med);
+                System.out.println("Medicine " + med.getMedicineName() + " added successfully!");
+            }
+        }
     }
 
-    public void removeMedicine(int medicineId){
+    public void removeMedicineByID(int medicineId){
         Iterator <Medicine> iterator = medList.iterator();
 
         while (iterator.hasNext()) {
@@ -128,9 +158,36 @@ public class Medicine {
         System.out.println("Medicine with ID " + medicineId + " not found.");
     }
 
-    public void updateMedicine(int medicineId, double newPrice, int newStock, LocalDate newExpiryDate, String newDescription){
+    public void removeMedicineByName(String medicineName){
+        Iterator <Medicine> iterator = medList.iterator();
+
+        while (iterator.hasNext()) {
+            Medicine med = iterator.next();
+            if(med.getMedicineName().equalsIgnoreCase(medicineName)){
+                iterator.remove();
+                System.out.println("Medicine Name " + med.getMedicineName() + " removed sucessfully!");
+                return;
+            }
+        }
+        System.out.println("Medicine with Name " + medicineName + " not found.");
+    }
+
+    public void updateMedicineByID(int medicineId, double newPrice, int newStock, LocalDate newExpiryDate, String newDescription){
         for(Medicine med : medList){
             if(med.getMedicineID() == medicineId){
+                med.setPrice(newPrice);
+                med.setStock(newStock);
+                med.setExpiryDate(newExpiryDate);
+                med.setDescription(newDescription);
+                return;
+            }
+        }
+        System.out.println("Medicine with ID " + medicineId + " not found.");
+    }
+
+    public void updateMedicineByName(String medicineName, double newPrice, int newStock, LocalDate newExpiryDate, String newDescription){
+        for(Medicine med : medList){
+            if(med.getMedicineName().equalsIgnoreCase(medicineName)){
                 med.setPrice(newPrice);
                 med.setStock(newStock);
                 med.setExpiryDate(newExpiryDate);
