@@ -2,6 +2,7 @@
     "java.project.sourcePaths": ["src"],
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
-        "lib/**/*.jar"
+        "lib/**/*.jar",
+        "/Users/nika/CS-Term2-Year2/OOP (JAVA)/Java_To_Database_Connector/mysql-connector-j-9.2.0.jar"
     ]
 }

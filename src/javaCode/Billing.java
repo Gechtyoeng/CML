@@ -1,22 +1,20 @@
 package javaCode;
 
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Date;
 import java.util.List;
-
 import util.base.BillingStatus;
 
 public class Billing {
-    private int billingId;          // Corresponds to billing_id
-    private int patientId;          // Corresponds to patient_id
-    private double totalAmount;     // Corresponds to total amount
-    private double paidAmount;      // Corresponds to paid amount
+    private int billingId;
+    private int patientId;
+    private double totalAmount;
+    private double paidAmount;
     private double balance;
-    private Date billingDate;       
-    private BillingStatus status;   // BillingStatus enum (Paid/Unpaid)
-    private String paymentMethod;   // "Cash", "Card", "Insurance"
-    private List<Prescription> prescriptions; // List of prescriptions
+    private Date billingDate;
+    private BillingStatus status;
+    private String paymentMethod;
+    private List<Prescription> prescriptions;
 
     // Constructor
     public Billing(int billingId, int patientId, double totalAmount, double paidAmount, BillingStatus status, String paymentMethod, List<Prescription> prescriptions) {
@@ -98,35 +96,98 @@ public class Billing {
         this.prescriptions = prescriptions;
     }
 
-    // Methods
-    //Calculate total: calculate total cost base on the service that patient used
-    public double calculateTotal(int patientId){
-        return this.totalAmount - this.paidAmount;
+    // Calculate total cost for the patient (retrieves from database)
+    public double calculateTotal(Connection conn, int patientId) throws SQLException {
+        String query = "SELECT SUM(total_cost) FROM services WHERE patient_id = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setInt(1, patientId);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                this.totalAmount = rs.getDouble(1);
+            }
+        }
+        return this.totalAmount;
     }
 
-    //Process payment: cash, card, insurance, etc.
-    public boolean addPayment(int patientID, double amount, String paymentMethod){
-        //Logic
-        return true;
+    // Process payment
+    public boolean addPayment(Connection conn, int patientID, double amount, String paymentMethod) throws SQLException {
+        String updateQuery = "UPDATE billing SET paid_amount = paid_amount + ?, payment_method = ?, status = ? WHERE patient_id = ?";
+        
+        double newPaidAmount = this.paidAmount + amount;
+        this.paidAmount = newPaidAmount;
+        this.balance = this.totalAmount - newPaidAmount;
+        this.status = (this.balance == 0) ? BillingStatus.PAID : BillingStatus.UNPAID;
+        this.paymentMethod = paymentMethod;
+
+        try (PreparedStatement pstmt = conn.prepareStatement(updateQuery)) {
+            pstmt.setDouble(1, amount);
+            pstmt.setString(2, paymentMethod);
+            pstmt.setString(3, this.status.toString());
+            pstmt.setInt(4, patientID);
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        }
     }
 
-    //Patient history and detail (connect to database)
+    // Retrieve billing details from the database
     public void getBillingDetails(Connection conn) throws SQLException {
+        String query = "SELECT * FROM billing WHERE billing_id = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setInt(1, this.billingId);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                this.patientId = rs.getInt("patient_id");
+                this.totalAmount = rs.getDouble("total_amount");
+                this.paidAmount = rs.getDouble("paid_amount");
+                this.balance = this.totalAmount - this.paidAmount;
+                this.paymentMethod = rs.getString("payment_method");
+                this.status = BillingStatus.valueOf(rs.getString("status"));
+            }
+        }
     }
 
-    //Check patient pending payment
-    public double checkPendingPayment(int patientID){
-        return totalAmount - paidAmount;
+    // Check pending payment for a patient
+    public double checkPendingPayment(Connection conn, int patientID) throws SQLException {
+        String query = "SELECT (total_amount - paid_amount) FROM billing WHERE patient_id = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setInt(1, patientID);
+            ResultSet rs = pstmt.executeQuery();
+            return rs.next() ? rs.getDouble(1) : 0.0;
+        }
     }
 
-    //Generate invoice
+    // Generate an invoice
     public String generateInvoice() {
-        return "===============Invoice=============== \nBilling ID: " + billingId + "\nPatient ID: " + patientId +
-                "\nTotal Amount: $" + totalAmount + "\nOutstanding Balance: $" + balance +
-                "\nPayment Status: " + status + "\n======================================";
+        return "=============== Invoice ===============\n" +
+                "Billing ID: " + billingId + "\n" +
+                "Patient ID: " + patientId + "\n" +
+                "Total Amount: $" + totalAmount + "\n" +
+                "Paid Amount: $" + paidAmount + "\n" +
+                "Outstanding Balance: $" + balance + "\n" +
+                "Payment Status: " + status + "\n" +
+                "Payment Method: " + paymentMethod + "\n" +
+                "=======================================";
     }
 
-    // Generate a bill (insert into database)
+    // Insert a new bill into the database
     public void generateBill(Connection conn) throws SQLException {
+        String insertQuery = "INSERT INTO billing (patient_id, total_amount, paid_amount, balance, billing_date, status, payment_method) VALUES (?, ?, ?, ?, NOW(), ?, ?)";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setInt(1, this.patientId);
+            pstmt.setDouble(2, this.totalAmount);
+            pstmt.setDouble(3, this.paidAmount);
+            pstmt.setDouble(4, this.balance);
+            pstmt.setString(5, this.status.toString());
+            pstmt.setString(6, this.paymentMethod);
+
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows > 0) {
+                ResultSet generatedKeys = pstmt.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    this.billingId = generatedKeys.getInt(1);
+                }
+            }
+        }
     }
 }
