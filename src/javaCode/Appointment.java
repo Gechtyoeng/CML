@@ -5,29 +5,38 @@ import java.time.LocalDateTime;
 
 public class Appointment {
     private int appointmentId;
-    private Patient patient;      // Corresponds to patient class
-    private Doctor doctor;       // Corresponds to Docotr class
+    private int patient_id;     
+    private int doctor_id;      
     private LocalDateTime appointmentDate;
     private Duration duration;
     private String status;
 
-    public Appointment(Patient patient, Doctor doctor, LocalDateTime appointmentDate,Duration duration, String status) {
-        this.patient = patient;
-        this.doctor = doctor;
+    public Appointment(int appointmentId, int patient_id, int doctor_id, LocalDateTime appointmentDate,Duration duration, String status) {
+        this.appointmentId = appointmentId;
+        this.patient_id = patient_id;
+        this.doctor_id = doctor_id;
         this.appointmentDate = appointmentDate;
         this.duration = duration;
-        this.status = "Scheduled";
+        this.status = status;
+    }
+    // Constructor when creating a new appointment (without ID)
+    public Appointment(int patient_id, int doctor_id, LocalDateTime appointmentDate, Duration duration, String status) {
+        this.patient_id = patient_id;
+        this.doctor_id = doctor_id;
+        this.appointmentDate = appointmentDate;
+        this.duration = duration;
+        this.status = status;
     }
 
     //getters
     public int getAppointmentId() {
         return appointmentId;
     }
-    public Patient getPatient() {
-        return patient;
+    public int getPatientId() {
+        return this.patient_id;
     }
-    public Doctor getDoctor() {
-        return doctor;
+    public int getDoctoId() {
+        return this.doctor_id;
     }
     public LocalDateTime getAppointmentDate() {
         return appointmentDate;
@@ -54,13 +63,18 @@ public class Appointment {
     public void markAsRescheduled() {
         this.status = "Rescheduled";
     }
-    //display appointment details
-    public void displayAppointmentDetails() {
-        System.out.println("Appointment ID: " + appointmentId);
-        System.out.println("Patient: " + patient.getFirstName() + " " + patient.getLastName());
-        System.out.println("Doctor: " + doctor.getFirstName() + " " + doctor.getLastName());
-        System.out.println("Appointment Date: " + appointmentDate);
-        System.out.println("Duration: " + duration);
-        System.out.println("Status: " + status);
+
+    @Override
+    public String toString() {
+         return "===========================\n" +
+        "Appointment ID: " + appointmentId + "\n" +
+        "Doctor ID: " + doctor_id +"\n" +
+        "Patient ID: " + patient_id + "\n" +
+        "Date: " + appointmentDate + "\n" +
+        "Duration: " + duration + "\n" +
+        "Status: " + status + "\n";
     }
+
+
+    
 }

@@ -12,102 +12,12 @@ import java.util.Scanner;
 //admin can book a patient with any doctor while doctors can only book for themselves
 
 import database.AppointmentDao;
+import database.DoctorDao;
+import database.UserDao;
+import util.base.Person;
 
 public class BookingSystem {
-    //booking for doctor role
-    public void doctorBook(Doctor doctor){
-        List<Patient> doctorPatients = doctor.getAppointments().stream()
-                .map(Appointment::getPatient)
-                .distinct() 
-                .toList(); // Convert to List
-
-    if (doctorPatients.isEmpty()) {
-        System.out.println("You have no patients with existing appointments.");
-        return;
-    }
-        bookAppointment(doctorPatients, null, doctor);
-    }
-    //booking for admin role
-    public void adminBook(Admin admin){
-        bookAppointment(admin.getPatients(), admin.getDoctors(), null);
-    }
-    //processing the booking
-    private void bookAppointment(List<Patient> patients, List<Doctor> doctors, Doctor isDoctor){
-        Scanner scanner = new Scanner(System.in);
-        //get patient by input patient id
-        System.out.print("Enter patient ID: ");
-        int patientId = scanner.nextInt();
-        scanner.nextLine();
-
-        Patient selectedPatient = null;
-        for (Patient patient : patients) {
-            if(patient.getId() == patientId) {
-                selectedPatient = patient;
-                break;
-            }
-        }
-        if(selectedPatient == null) {
-            System.out.println("Patient not found");
-            return;
-        }
-        //get doctor by list down the doctor and let patient select the doctor if admin
-        Doctor selectedDoctor = null;
-        // if doctors book for themselves let the selected doctor = this doctor
-        if(isDoctor == null){
-            System.out.println("Select a doctor:");
-        for (Doctor doctor : doctors) {
-            doctor.displayDoctorDetails();
-        }
-
-        System.out.print("Enter the doctor ID: ");
-        int doctorId = scanner.nextInt();
-        scanner.nextLine();
-        for (Doctor doctor : doctors) {
-            if(doctor.getId() == doctorId) {
-                selectedDoctor = doctor;
-                break;
-            }
-        }
-        if(selectedDoctor == null) {
-            System.out.println("Doctor not found!");
-            return;
-        } 
-        }else{
-            selectedDoctor = isDoctor;
-        }
-        
-        //get appointment date
-        System.out.print("Enter appointment date (dd-MM-yyyy): ");
-        String dateInput = scanner.next();
-        LocalDate appointmentDate = isvalidDate(dateInput);
-        if(appointmentDate == null) {
-            return;
-        }
-        //get appointment time
-        System.out.print("Enter appointment time (HH:mm): ");
-        String timeInput = scanner.next(); 
-        //get the duration
-        System.out.print("Please enter your expected duration minutes:");
-        int minutes = scanner.nextInt();
-        Duration duration = Duration.ofMinutes(minutes);
-
-        LocalTime appointmentTime = isValidTime(timeInput);
-        //booking if all the input is valid
-        if(selectedDoctor != null && appointmentDate != null && appointmentTime != null){
-            if(isDoctorAvailiable(selectedDoctor, appointmentDate, appointmentTime, duration)){
-                Appointment appointment = new Appointment(selectedPatient, selectedDoctor, appointmentDate.atTime(appointmentTime),duration, "Scheduled");
-                //save appointment to database
-                AppointmentDao.saveAppointment(appointment);
-                //add appointment to doctor and patient list
-                selectedDoctor.addAppointment(appointment);
-                selectedPatient.addAppointment(appointment);
-
-                System.out.println("Appointment booked successfully");
-            }
-        }
-        scanner.close();
-    }
-//valid the date input format
+  
     public LocalDate isvalidDate(String dateInput){
         try{
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
@@ -145,20 +55,43 @@ public class BookingSystem {
         }
     }
     
-    public boolean isDoctorAvailiable(Doctor doctor, LocalDate appointmentDate, LocalTime startTime, Duration duration){
-        List<Appointment> appointments = doctor.getAppointments();
-        LocalTime endTime = startTime.plus(duration);
+    public static boolean isDoctorAvailiable(Doctor doctor, LocalDateTime appointmentDate, Duration duration){
+        List<Appointment> appointments = doctor.getAppointments();//check to make sure this appointment is recently
+        LocalDateTime currentEnd = appointmentDate.plus(duration);
+        LocalDateTime currentStart = appointmentDate;
+
         for (Appointment appointment : appointments) {
             LocalDateTime existingStart = appointment.getAppointmentDate();
             LocalDateTime existingEnd = appointment.getAppointmentDate().plus(appointment.getDuration());
 
-            LocalDateTime currentStart = appointmentDate.atTime(startTime);
-            LocalDateTime currentEnd = appointmentDate.atTime(endTime);
-            if (currentStart.isBefore(existingEnd) && currentEnd.isAfter(existingStart)) {
+            if (currentStart.isBefore(existingEnd) && currentEnd.isAfter(existingStart)
+            || currentStart.isEqual(existingEnd) || currentEnd.isEqual(existingStart)) {
                 return false;
             }
         }
         return true;
     }
-   
+
+    public static String bookAppointment(int doctorId, int patientId, LocalDateTime appointmentDate, Duration duration, String role){
+        if (!role.equals("Doctor") && !role.equals("Receptionist") && !role.equals("Admin")) {
+            return "You do not have permission to book appointment";
+        }
+          // Check if the doctor is available for the given time
+          Doctor doctor =  DoctorDao.getDoctorById(doctorId);
+          try {
+            if (!isDoctorAvailiable(doctor, appointmentDate, duration)) {
+
+                return "Doctor "+doctor.getFirstName()+" "+ doctor.getLastName()+" not availiable for this time"; 
+            }else{
+                Appointment newAppointment = new Appointment(patientId, doctorId, appointmentDate, duration, "schedule");
+
+                //save appointment to database
+                AppointmentDao.saveAppointment(newAppointment);
+                return "Appointment booking successfully";
+            }
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }  
 }
+

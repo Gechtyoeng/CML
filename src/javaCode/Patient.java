@@ -1,6 +1,10 @@
 package javaCode;
 
 import java.util.List;
+
+import database.AppointmentDao;
+import database.PatientDao;
+
 import java.util.ArrayList;
 import util.base.Person;
 
@@ -9,8 +13,6 @@ public class Patient extends Person {
     private String gender;
     private String dateOfBirth;
     private String address;
-    private List<Appointment> appointments; //store all appointments of patient
-    private List<String> medicalHistory; // Store patient's medical records
 
     //constructor
     public Patient(int id,String username, String password, String firstName, String lastName, String email, String phone, String 
@@ -19,8 +21,17 @@ public class Patient extends Person {
         this.gender = gender;
         this.dateOfBirth = dateOfBirth;
         this.address = address;
-        this.appointments = new ArrayList<>(); //initialize appointment lists
-        this.medicalHistory = new ArrayList<>(); //initialize medical history
+    }
+    @Override
+    public String toString() {
+    return "===========================\n" +
+           "Patient ID: " + id + "\n" +
+           "Name: " + firstName + " " + lastName + "\n" +
+           "Gender: " + gender + "\n" +
+           "Date of Birth: " + dateOfBirth + "\n" +
+           "Email: " + email + "\n" +
+           "Address: " + address + "\n" +
+           "Phone Number: " + phone + "\n";
     }
 
     public String getDateOfBirth() {
@@ -34,29 +45,28 @@ public class Patient extends Person {
     public String getGender(){
         return this.gender;
     }
-    //Method to display patient detail
-    public void displayPatientDetails() {
-        System.out.println("Patient ID: " + id);
-        System.out.println("Name: " + firstName + " " + lastName);
-        System.out.println("Date of Birth: " + dateOfBirth);
+    //get patients by id
+    public Patient getPatientById(){
+        
+       return PatientDao.getPatientById(id);
     }
-   
-    public void addAppointment(Appointment appointment) {
-        if(appointments == null) {
-            appointments = new ArrayList<>();
-        }
-        appointments.add(appointment);
+    //get appointment by patient id
+    public List<Appointment> getAppointments(){
+        List<Appointment> appointments = AppointmentDao.getAppointmentsByPatientId(id);
+        return (appointments != null) ? appointments : new ArrayList<>();
+
     }
 
      // Method to show all appointments
      public void showAppointments() {
-        System.out.println("Appointments for " + firstName + " " + lastName + ":");
-        if (appointments.isEmpty()) {
-            System.out.println("No appointments found.");
-        } else {
+        List<Appointment> appointments = getAppointments();
+        if(appointments.isEmpty()){
+            System.out.println("No appointment with patient "+ firstName +" "+lastName);
+        }else{
             for (Appointment appointment : appointments) {
-                appointment.displayAppointmentDetails();
+                System.out.println(appointment);
             }
         }
     }
+
 }
