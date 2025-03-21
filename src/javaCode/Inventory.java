@@ -1,7 +1,7 @@
 package javaCode;
 
+import java.sql.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -67,189 +67,176 @@ public class Inventory {
 
     //method
 
-    //Add new items by ID
-    public void addItemsByID(Inventory item){
-        boolean found = false;
+    //Add new items 
+    public void addItems(){
+        String sql = "INSERT INTO inventory (item_name, quantity, price, expiry_date) VALUES (?, ?, ?, ?)";
 
-        for(Inventory existingItem : inventoryList){
-            if(existingItem.getInventoryId() == item.getInventoryId()){
-                existingItem.setQuantity(existingItem.getQuantity() + item.getQuantity());
-                found = true;
-                System.out.println("Item " + item.getItemName() + " added sucessfully!");
-                break;
-            }
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)){
+            
+            stmt.setString(1, this.itemName);
+            stmt.setInt(2, this.quantity);
+            stmt.setDouble(3, this.price);
+            stmt.setDate(4, Date.valueOf(this.expiryDate));
 
-            if(!found){
-                inventoryList.add(item);
-                System.out.println("Item " + item.getItemName() + " added sucessfully!");
+            int rows = stmt.executeUpdate();
+            if(rows > 0){
+                System.out.println("Item added successfully!");
             }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //Update items
+    public static void updateItems(int newInventory_id, int newQuantity, double newPrice, LocalDate newExpiryDate){
+        String sql = "UPDATE inventory SET quantity = ?, price = ?, expiry_date = ? WHERE inventory_id = ?";
+
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)){
+            
+            stmt.setInt(1, newQuantity);
+            stmt.setDouble(2, newPrice);
+            stmt.setDate(3, Date.valueOf(newExpiryDate));
+            stmt.setInt(4, newInventory_id);
+
+            int rows = stmt.executeUpdate();
+            if(rows > 0){
+                System.out.println("Item updated successfully!");
+            }else{
+                System.out.println("Item not found.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
     }
-    //Add new items by Name
-    public void addItemsByName(Inventory item){
-        boolean found = false;
 
-        for(Inventory existingItem : inventoryList){
-            if(existingItem.getItemName().equalsIgnoreCase(item.getItemName())){
-                existingItem.setQuantity(existingItem.getQuantity() + item.getQuantity());
-                found = true;
-                System.out.println("Item " + item.getItemName() + " added sucessfully!");
-                break;
-            }
+    //Remove items 
+    public static void removeItem(int inventory_id){
+        String sql = "DELETE FROM inventory WHERE inventory_id = ?";
 
-            if(!found){
-                inventoryList.add(item);
-                System.out.println("Item " + item.getItemName() + " added sucessfully!");
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)){
+            
+            stmt.setInt(1, inventory_id);
+            int rows = stmt.executeUpdate();
+
+            if(rows > 0){
+                System.out.println("Item removed successfully!");
+            }else{
+                System.out.println("Item not found.");
             }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
     }
 
-    //Update items by ID(Modify quantity, price, or expiry date)
-    public void updateItems(int inventoryId, int newQuantity, double newPrice, LocalDate newExpiryDate){
-        for(Inventory item : inventoryList){
-            if(item.getInventoryId() == inventoryId){
-                item.setQuantity(newQuantity);
-                item.setPrice(newPrice);
-                item.setExpiryDate(newExpiryDate);
-                System.out.println("Item updated sucessfully!");
-                return;
+    //Search for an item by ID
+    public static void searchItemsByID(int inventory_id) {
+        String sql = "SELECT * FROM inventory WHERE inventory_id = ?";
+
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)){
+            
+            stmt.setInt(1, inventory_id);
+            ResultSet rs = stmt.executeQuery();
+
+            if(rs.next()){
+                System.out.println("Item Found: " + rs.getString("item_name") + ", Quantity: " + rs.getInt("quantity") + ", Price: " + rs.getDouble("price") + ", Expiry Date: " + rs.getDate("expiry_date"));
+            }else{
+                System.out.println("Item not found.");
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        System.out.println("Item with ID " + inventoryId + " not found.");
-    }
-
-    //Update items by Name(Modify quantity, price, or expiry date)
-    public void updateItemsByName(String itemName, int newQuantity, double newPrice, LocalDate newExpiryDate){
-        for(Inventory item : inventoryList){
-            if(item.getItemName().equalsIgnoreCase(itemName)){
-                item.setQuantity(newQuantity);
-                item.setPrice(newPrice);
-                item.setExpiryDate(newExpiryDate);
-                System.out.println("Item updated sucessfully!");
-                return;
-            }
-        }
-        System.out.println("Item with ID " + inventoryId + " not found.");
-    }
-
-    //Remove items by ID
-    public void removeItemsByID(int inventoryId){
-        Iterator <Inventory> iterator = inventoryList.iterator();
-
-        while (iterator.hasNext()) {
-            Inventory item = iterator.next();
-            if(item.getInventoryId() == inventoryId){
-                iterator.remove();
-                System.out.println("Item " + item.getItemName() + " removed sucessfully!");
-                return;
-            }
-        }
-        System.out.println("Item with ID " + inventoryId + " not found.");
-    }
-
-    //Remove items by Name
-    public void removeItemsByName(String itemName){
-        Iterator <Inventory> iterator = inventoryList.iterator();
-
-        while (iterator.hasNext()) {
-            Inventory item = iterator.next();
-            if(item.getItemName().equalsIgnoreCase(itemName)){
-                iterator.remove();
-                System.out.println("Item " + item.getItemName() + " removed sucessfully!");
-                return;
-            }
-        }
-        System.out.println("Item with ID " + inventoryId + " not found.");
-    }
-
-    //Search for an item by name or ID
-    public void searchItemsByID(int inventoryId){
-        for(Inventory item : inventoryList){
-            if(item.getInventoryId() == inventoryId){
-                System.out.println("Item found: " + item.getItemName());
-                return;
-            }
-        }
-        System.out.println("Item with ID " + inventoryId + " not found.");
-    }
-
-    public void searchItemsByName(String itemName){
-        for(Inventory item :inventoryList){
-            if(item.getItemName().equalsIgnoreCase(itemName)){
-                System.out.println("Item found: " + item.getItemName());
-                return;
-            }
-        }
-        System.out.println("Item with ID " + inventoryId + " not found.");
     }
 
     //Display all inventory items
     public void displayInventory(){
-        if (inventoryList.isEmpty()) {
-            System.out.println("Inventory is empty.");
-            return;
-        }
-        for (Inventory item : inventoryList) {
-            System.out.println("ID: " + item.getInventoryId() + ", Name: " + item.getItemName() +
-                    ", Quantity: " + item.getQuantity() + ", Price: " + item.getPrice() +
-                    ", Expiry Date: " + item.getExpiryDate());
+        String sql = "SELECT * FROM inventory";
+
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()){
+            
+            while (rs.next()) {
+                System.out.println("ID: " + rs.getInt("inventory_id") + ", Name: " + rs.getString("item_name") + rs.getInt("quantity") + ", Price: " + rs.getDouble("price") + ", Expiry Date: " + rs.getDate("expiry_date"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
     //checking the expiration date of the items
     public void expiryCheck(LocalDate expiryDate){
         LocalDate currTime = LocalDate.now();
-        System.out.println("Expiry Status of all items:");
+        String sql = "SELECT item_name, expiry_date FROM inventory";
 
-        for(Inventory item : inventoryList){
-        
-            if(currTime.isBefore(item.getExpiryDate())){
-                System.out.println("The item " + item.getItemName() + " is not expired yet!");
-            }else if(currTime.isEqual(item.getExpiryDate())){
-                System.out.println("The item " + item.getItemName() + " is expired today!");
-            }else{
-                System.out.println("The item " + item.getItemName() + " have already expired!");
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()){
+            
+
+            while (rs.next()) {
+                LocalDate expiry = rs.getDate("expiry_date").toLocalDate();
+                if(expiry.isBefore(currTime)){
+                    System.out.println("The item " + rs.getString("item_name") + " has expired!");
+                }else if(expiry.isEqual(currTime)){
+                    System.out.println("The item " + rs.getString("item_name") + " expires today!");
+                }else{
+                    System.out.println("The item " + rs.getString("item_name") + " is still valid.");
+                }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
     //checking quantity in stock by ID
-    public void quantityCheck(){
-         System.out.println("Stock left for " + inventoryId + " (" + itemName + "): " + quantity);
-    }
+    public void quantityCheck(int inventory_id){
+    String sql = "SELECT item_name, quantity FROM inventory WHERE inventory_id = ?";
 
-    public void quantityCheckByID(int inventoryId){
-        for(Inventory item : inventoryList){
-            if(item.getInventoryId() == inventoryId){
-                item.quantityCheck();
-                return;
+    try (Connection conn = getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)){
+        
+            stmt.setInt(1, inventory_id);
+            ResultSet rs = stmt.executeQuery();
+
+            if(rs.next()){
+                System.out.println("Stock left for ID " + inventory_id + " (" + rs.getString("item_name") + "): " + rs.getInt(quantity));
+
+            }else {
+                System.out.println("Item with ID " + inventory_id + " not found.");
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        System.out.println("Item with ID " + inventoryId + " not found.");
+    
     }
-
-    public void quantityCheckByName(String itemName){
-        for(Inventory item : inventoryList){
-            if(item.getItemName() == itemName){
-                item.quantityCheck();
-                return;
-            }
-        }
-        System.out.println("Item with Name " + itemName + " not found.");
-    }
-
     //checking stock level
     public void stockLevel(){
         int lowStock = 5;
+        String sql = "SELECT item_name, quantity FROM inventory";
 
-        for(Inventory item : inventoryList){
-            if(item.getQuantity() <= lowStock){
-                System.out.println(item.getItemName() + ": Low stock (only " + item.getQuantity() + " left)");
+        try (Connection conn = getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        ResultSet rs = stmt.executeQuery()){
+            
+        while (rs.next()) {
+            int quantity = rs.getInt("quantity");
+            String itemName = rs.getString("item_name");
+            if (quantity <= lowStock) {
+                System.out.println(itemName + ": Low stock (only " + quantity + " left)");
             }else{
-                System.out.println(item.getItemName() + ": Sufficient Stock (" + item.getQuantity() + " left)");
+                System.out.println(itemName + ": Sufficient stock (" + quantity + " left)");
             }
+        }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

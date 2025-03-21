@@ -1,5 +1,6 @@
 package javaCode;
 
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -75,167 +76,162 @@ public class Medicine {
     }
 
     //method
-    public boolean isExpired() {
-        return LocalDate.now().isAfter(expiryDate);
-    }
 
-    public void veiwMedicinInfoByID(int medicineId){
-        for(Medicine med : medList){
-            if(med.getMedicineID() == medicineId){
-                med.veiwMedicinInfo();
-                return;
-            }
-        }
-        System.out.println("Medicine with ID " + medicineId + " not found.");
-    }
+    //Add medicine to DB
+    public void addMedicine(){
+        String sql = "INSERT INTO Medicine (medicine_name, dosage, price, stock, expiry_date, description) VALUES (?, ?, ?, ?, ?, ?)";
 
-    public void veiwMedicinInfoByName(String medicineName){
-        for(Medicine med : medList){
-            if(med.getMedicineName().equalsIgnoreCase(medicineName)){
-                med.veiwMedicinInfo();
-                return;
-            }
-        }
-        System.out.println("Medicine with ID " + medicineId + " not found.");
-    }
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)){
+            
+            stmt.setString(1, this.medicineName);
+            stmt.setString(2, this.dosage);
+            stmt.setDouble(3, this.price);
+            stmt.setInt(4, this.stock);
+            stmt.setDate(5, java.sql.Date.valueOf(this.expiryDate));
+            stmt.setString(6, this.description);
 
-    public void veiwMedicinInfo(){
-        System.out.println("Medicine ID: " + medicineId);
-        System.out.println("Name: " + medicineName);
-        System.out.println("Dosage: " + dosage);
-        System.out.println("Price: $" + price);
-        System.out.println("Stock: " + stock);
-        System.out.println("Expiry Date: " + expiryDate);
-        System.out.println("Expired: " + (isExpired() ? "Yes" : "No"));
-        System.out.println("Description: " + description);
-    }
-
-    public void addMedicineByID(Medicine med){
-        boolean found = false;
-        for(Medicine existingMed : medList){
-            if(existingMed.getMedicineID() == med.getMedicineID()){
-                existingMed.setStock(existingMed.getStock() + med.getStock());
-                found = true;
-                System.out.println("Medicine " + med.getMedicineName() + " added sucessfully!");   
-                break;             
-            }
-
-            if(!found){
-                medList.add(med);
-                System.out.println("Medicine " + med.getMedicineName() + " added sucessfully!");
-            }
-        }
-
-    }
-    public void addMedicineByName(Medicine med){
-        boolean found = false;
-        for(Medicine existingMed : medList){
-            if(existingMed.getMedicineName().equalsIgnoreCase(med.getMedicineName())){
-                existingMed.setStock(existingMed.getStock() + med.getStock());
-                found = true;
-                System.out.println("Medicine " + med.getMedicineName() + " added sucessfully!");   
-                break;             
-            }
-
-            if (!found) {
-                medList.add(med);
-                System.out.println("Medicine " + med.getMedicineName() + " added successfully!");
-            }
+            int rs = stmt.executeUpdate();
+            System.out.println(rs + " medicine added successfully!");
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
+    
 
     public void removeMedicineByID(int medicineId){
-        Iterator <Medicine> iterator = medList.iterator();
+        String sql = "DELETE FROM Medicine WHERE medicine_id = ?";
 
-        while (iterator.hasNext()) {
-            Medicine med = iterator.next();
-            if(med.getMedicineID() == medicineId){
-                iterator.remove();
-                System.out.println("Medicine ID " + med.getMedicineID() + " removed sucessfully!");
-                return;
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)){
+            
+            stmt.setInt(1, medicineId);
+            int rows = stmt.executeUpdate();
+            System.out.println(rows + " medicine deleted successfully!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //update medicine
+    public void updateMedicine(){
+        String sql = "UPDATE Medicine SET price = ?, stock = ?, expiry_date = ?, description = ? WHERE medicine_id = ?";
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)){
+            stmt.setDouble(1, this.price);
+            stmt.setInt(2, this.stock);
+            stmt.setDate(3, java.sql.Date.valueOf(this.expiryDate));
+            stmt.setString(4, this.description);
+            stmt.setInt(5, this.medicineId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //display all medicine
+    public void displayMedicine(){
+        String sql = "SELECT * FROM Medicine";
+
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()){
+            
+            while (rs.next()) {
+                System.out.println("ID: " + rs.getInt("medicine_id") + ", Name: " + rs.getString("medicine_name") + ", Dosage: " + rs.getString("dosage") + ", Price: " + rs.getDouble("price") +", Stock: " + rs.getInt("stock") + ", Expiry date: " + rs.getDate("expiryDate") + ", Description: " + rs.getString("description"));
             }
-        }
-        System.out.println("Medicine with ID " + medicineId + " not found.");
-    }
-
-    public void removeMedicineByName(String medicineName){
-        Iterator <Medicine> iterator = medList.iterator();
-
-        while (iterator.hasNext()) {
-            Medicine med = iterator.next();
-            if(med.getMedicineName().equalsIgnoreCase(medicineName)){
-                iterator.remove();
-                System.out.println("Medicine Name " + med.getMedicineName() + " removed sucessfully!");
-                return;
-            }
-        }
-        System.out.println("Medicine with Name " + medicineName + " not found.");
-    }
-
-    public void updateMedicineByID(int medicineId, double newPrice, int newStock, LocalDate newExpiryDate, String newDescription){
-        for(Medicine med : medList){
-            if(med.getMedicineID() == medicineId){
-                med.setPrice(newPrice);
-                med.setStock(newStock);
-                med.setExpiryDate(newExpiryDate);
-                med.setDescription(newDescription);
-                return;
-            }
-        }
-        System.out.println("Medicine with ID " + medicineId + " not found.");
-    }
-
-    public void updateMedicineByName(String medicineName, double newPrice, int newStock, LocalDate newExpiryDate, String newDescription){
-        for(Medicine med : medList){
-            if(med.getMedicineName().equalsIgnoreCase(medicineName)){
-                med.setPrice(newPrice);
-                med.setStock(newStock);
-                med.setExpiryDate(newExpiryDate);
-                med.setDescription(newDescription);
-                return;
-            }
-        }
-        System.out.println("Medicine with ID " + medicineId + " not found.");
-    }
-
-    public void displayAllTheMedicine(){
-        if(medList.isEmpty()){
-            System.out.println("Database is empty!");
-            return;
-        }
-        for(Medicine med : medList){
-            med.veiwMedicinInfo();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
+    //Check stock level
     public void medStockLevel(){
         int medLowStock = 5;
+        String sql = "SELECT medicine_name, stock FROM Medicine";
 
-        for(Medicine med : medList){
-            if(med.getStock() <= medLowStock){
-                System.out.println(med.getMedicineName() + ": Low stock (only " + med.getStock() + " left)");
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()){
+            
+            while (rs.next()) {
+                int stock = rs.getInt("stock");
+                String medicine_name = rs.getString("medicine_name");
+                if(stock <= medLowStock){
+                    System.out.println(medicine_name + ": Low stock (only " + stock + " left)");
+                }else{
+                    System.out.println(medicine_name + ": Sufficient stock (" + stock + " left)");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // search medicine by id
+    public static void searchMedByID(int medicineId){
+        String sql = "SELECT * FROM Medicine WHERE medicine_id = ?";
+
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)){
+            
+            stmt.setInt(1, medicineId);
+            ResultSet rs = stmt.executeQuery();
+
+            if(rs.next()){
+                System.out.println("Medicine Found: " + rs.getString("medicine_name") + ", Dosage: " + rs.getString("dosage") + ", Price: " + rs.getDouble("price") +", Stock: " + rs.getInt("stock") + ", Expiry date: " + rs.getDate("expiryDate") + ", Description: " + rs.getString("description"));
             }else{
-                System.out.println(med.getMedicineName() + ": Sufficient Stock (" + med.getStock() + " left)");
+                System.out.println("Medicine not found.");
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    public void searchMedByID(int medicineId){
-        for(Medicine med : medList){
-            if(med.getMedicineID() == medicineId){
-                System.out.println("Item found: " + med.getMedicineName());
+    //checking the expiration date of the medicine
+    public void expiryCheck(LocalDate expiryDate){
+        LocalDate currTime = LocalDate.now();
+        String sql = "SELECT medicineName, expiryDate FROM Medicine";
+
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()){
+            
+
+            while (rs.next()) {
+                LocalDate expiry = rs.getDate("expiryDate").toLocalDate();
+                if(expiry.isBefore(currTime)){
+                    System.out.println("The medicine " + rs.getString("medicineName") + " has expired!");
+                }else if(expiry.isEqual(currTime)){
+                    System.out.println("The medicine " + rs.getString("medicineName") + " expires today!");
+                }else{
+                    System.out.println("The medicine " + rs.getString("medicineName") + " is still valid.");
+                }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        System.out.println("Medicine with ID " + medicineId + " not found.");
     }
 
-    public void searchMedByName(String medicineName){
-        for(Medicine med : medList){
-            if(med.getMedicineName().equalsIgnoreCase(medicineName)){
-                System.out.println("Item found: " + med.getMedicineName());
+    //checking quantity in stock by ID
+    public void quantityCheck(int medicineId){
+        String sql = "SELECT medicineName, stock FROM Medicine WHERE medicineId = ?";
+    
+        try (Connection conn = getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)){
+            
+                stmt.setInt(1, medicineId);
+                ResultSet rs = stmt.executeQuery();
+    
+                if(rs.next()){
+                    System.out.println("Stock left for ID " + medicineId + " (" + rs.getString("medicineId") + "): " + rs.getInt(stock));
+    
+                }else {
+                    System.out.println("Medicine with ID " + medicineId + " not found.");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        }
-        System.out.println("Medicine with name " + medicineName + " not found.");
+        
     }
 
 }
