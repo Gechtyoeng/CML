@@ -166,7 +166,7 @@ public class UserDao {
             if (rs.next()) {
                 int userId = rs.getInt("id");
                 String userUsername = rs.getString("username");
-                String hashedPassword = rs.getString("password");
+                String Password = rs.getString("password");
                 String firstName = rs.getString("first_name");
                 String lastName = rs.getString("last_name");
                 String email = rs.getString("email");
@@ -175,16 +175,16 @@ public class UserDao {
     
                 switch (role) {
                     case "Doctor":
-                        user = new Doctor(userId, userUsername, hashedPassword, firstName, lastName, email, phoneNumber, rs.getString("specialization"));
+                        user = new Doctor(userId, userUsername, Password, firstName, lastName, email, phoneNumber, rs.getString("specialization"));
                         break;
                     case "Patient":
-                        user = new Patient(userId, userUsername, hashedPassword, firstName, lastName, email, phoneNumber, rs.getString("gender"), rs.getString("dob"), rs.getString("address"));
+                        user = new Patient(userId, userUsername, Password, firstName, lastName, email, phoneNumber, rs.getString("gender"), rs.getString("dob"), rs.getString("address"));
                         break;
                     case "Receptionist":
-                        user = new Receptionist(userId, userUsername, hashedPassword, firstName, lastName, email, phoneNumber);
+                        user = new Receptionist(userId, userUsername, Password, firstName, lastName, email, phoneNumber);
                         break;
                     case "Admin":
-                        user = new Admin(userId, userUsername, hashedPassword, firstName, lastName, email, phoneNumber);
+                        user = new Admin(userId, userUsername,Password, firstName, lastName, email, phoneNumber);
                         break;
                     default:
                         user = null;

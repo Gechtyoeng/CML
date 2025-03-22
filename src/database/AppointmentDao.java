@@ -9,12 +9,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mysql.cj.x.protobuf.MysqlxCursor.Fetch;
-
 import javaCode.Appointment;
-import javaCode.Doctor;
-import javaCode.Patient;
-import util.base.Person;
 
 public class AppointmentDao {
 

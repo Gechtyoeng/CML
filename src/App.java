@@ -14,7 +14,7 @@ public class App {
         Scanner scanner = new Scanner(System.in);
         UserDao userDAO = new UserDao(); // Create an instance of UserDAO
         // Fetch all appointments from the database
-        List<Appointment> appointments = AppointmentDao.fetchAllAppointment(false, false, 0);
+        //List<Appointment> appointments = AppointmentDao.fetchAllAppointment(false, false, 0);
         Person user = null;
         System.out.println("<===== Welcome to Clinic Management System =====>");
         

@@ -7,14 +7,11 @@ import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Scanner;
 //this booking system can be used by admin and doctor
 //admin can book a patient with any doctor while doctors can only book for themselves
 
 import database.AppointmentDao;
 import database.DoctorDao;
-import database.UserDao;
-import util.base.Person;
 
 public class BookingSystem {
   

@@ -4,6 +4,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import database.Database;
+
 public class Prescription {
     private int prescriptionID;
     private int doctorID;
@@ -18,9 +20,9 @@ public class Prescription {
     private String dateIssued;
 
     // Database connection details
-    private static final String URL = "jdbc:mysql://localhost:3306/clinic_db";  //Change latter after merge
-    private static final String USER = "root";
-    private static final String PASSWORD = "";
+    // private static final String URL = "jdbc:mysql://localhost:3306/clinic_db";  //Change latter after merge
+    // private static final String USER = "root";
+    // private static final String PASSWORD = "";
 
     // Fixed charges for hospital services
     private static final double CONSULTATION_FEE = 20.0;  // Doctor fee
@@ -56,10 +58,10 @@ public class Prescription {
     }
 
     // Save prescription to database
-    public void saveToDatabase() {
-        String sql = "INSERT INTO prescriptions (doctorID, patientID, consultationCharge, medicationCharge, diagnosisCharge, nursingCharge, facilityCharge, totalCharge, dateIssued) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public void savePrescription() {
+        String sql = "INSERT INTO prescriptions (doctor_id, patient_id, consultationCharge, medicationCharge, diagnosisCharge, nursingCharge, facilityCharge, totalCharge, dateIssued) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+        try (Connection conn = Database.connect();
             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             pstmt.setInt(1, doctorID);
@@ -104,7 +106,7 @@ public class Prescription {
         String sql = "SELECT price FROM medicines WHERE medicineID = ?";
         double pricePerUnit = 0;
 
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+        try (Connection conn = Database.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, medicineID);
@@ -122,7 +124,7 @@ public class Prescription {
     public void updatePrescription() {
         String sql = "UPDATE prescriptions SET consultationCharge = ?, medicationCharge = ?, diagnosisCharge = ?, nursingCharge = ?, facilityCharge = ?, totalCharge = ? WHERE prescriptionID = ?";
 
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+        try (Connection conn = Database.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setDouble(1, consultationCharge);
