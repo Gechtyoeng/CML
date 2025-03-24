@@ -24,7 +24,6 @@ public class Prescription {
 
     // Fixed charges for hospital services
     private static final double CONSULTATION_FEE = 20.0;  // Doctor fee
-    private static final double MEDICINE_FEE = 5.0;       // Per medicine - change later
     private static final double DIAGNOSIS_FEE = 15.0;     // Duagnosis fee
     private static final double NURSING_FEE = 10.0;       // Nursing care fee
     private static final double FACILITY_FEE = 30.0;      // Clinic facility use
@@ -47,13 +46,31 @@ public class Prescription {
         this.medicationCharge = 0.0;
 
         // Calculate total charge
-        calculateTotalCharge();
+        calculateCharges();
     }
 
-    // Method to calculate total charge
-    private void calculateTotalCharge() {
-        this.totalCharge = (consultationCharge + medicationCharge + diagnosisCharge + nursingCharge + facilityCharge);
+    // Getters
+    public int getPrescriptionID() { return prescriptionID; }
+    public int getDoctorID() { return doctorID; }
+    public int getPatientID() { return patientID; }
+    public List<Medicine> getMedicines() { return medicines; }
+    public String getDateIssued() { return dateIssued; }
+    public double getTotalCharge() { return totalCharge; }
+
+    // Calculate total charges
+    private void calculateCharges() {
+        this.consultationCharge = CONSULTATION_FEE;
+        this.diagnosisCharge = DIAGNOSIS_FEE;
+        this.nursingCharge = NURSING_FEE;
+        this.facilityCharge = FACILITY_FEE;
+        
+        this.medicationCharge = 0;
+        for (Medicine medicine : medicines) {
+            this.medicationCharge += medicine.getPrice() * medicine.getQuantity(); //Related to class medicine
+        }
+        this.totalCharge = consultationCharge + diagnosisCharge + nursingCharge + facilityCharge + medicationCharge;
     }
+
 
     // Save prescription to database
     public void saveToDatabase() {
@@ -93,7 +110,7 @@ public class Prescription {
         double totalMedicineCost = (pricePerUnit * quantity);
         this.medicationCharge += totalMedicineCost;
 
-        calculateTotalCharge();
+        calculateCharges();
         updatePrescription();
 
         System.out.println("Medicine added. New total charge: $" + totalCharge);
