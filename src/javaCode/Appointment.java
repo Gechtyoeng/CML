@@ -1,7 +1,5 @@
 package javaCode;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.*;
 
 public class Appointment {
     private int appointmentId;
@@ -42,7 +40,7 @@ public class Appointment {
         return appointmentDate;
     }
     public String getStatus() {
-        return status;
+        return this.status;
     }
     public Duration getDuration(){
         return this.duration;
@@ -74,6 +72,7 @@ public class Appointment {
         "Duration: " + duration + "\n" +
         "Status: " + status + "\n";
     }
+ 
 
 
     

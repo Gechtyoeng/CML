@@ -1,9 +1,6 @@
 package javaCode;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Duration;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -11,11 +8,10 @@ import java.util.List;
 //admin can book a patient with any doctor while doctors can only book for themselves
 
 import database.AppointmentDao;
-import database.DoctorDao;
 
 public class BookingSystem {
   
-    public LocalDate isvalidDate(String dateInput){
+    public static LocalDate isvalidDate(String dateInput){
         try{
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
             LocalDate appointmentDate = LocalDate.parse(dateInput, formatter);
@@ -33,7 +29,7 @@ public class BookingSystem {
         }
     }
 
-    public LocalTime isValidTime(String timeInput){
+    public static LocalTime isValidTime(String timeInput){
         try{
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
             LocalTime appointmentTime = LocalTime.parse(timeInput, formatter);
@@ -69,25 +65,21 @@ public class BookingSystem {
         return true;
     }
 
-    public static String bookAppointment(int doctorId, int patientId, LocalDateTime appointmentDate, Duration duration, String role){
-        if (!role.equals("Doctor") && !role.equals("Receptionist") && !role.equals("Admin")) {
-            return "You do not have permission to book appointment";
-        }
+    public static void bookAppointment(Doctor doctor, Patient patient, LocalDateTime appointmentDate, Duration duration){  
           // Check if the doctor is available for the given time
-          Doctor doctor =  DoctorDao.getDoctorById(doctorId);
           try {
             if (!isDoctorAvailiable(doctor, appointmentDate, duration)) {
 
-                return "Doctor "+doctor.getFirstName()+" "+ doctor.getLastName()+" not availiable for this time"; 
+                System.out.println( "Doctor "+doctor.getFirstName()+" "+ doctor.getLastName()+" not availiable for this time"); 
             }else{
-                Appointment newAppointment = new Appointment(patientId, doctorId, appointmentDate, duration, "schedule");
+                Appointment newAppointment = new Appointment(patient.getId(), doctor.getId(), appointmentDate, duration, "schedule");
 
                 //save appointment to database
                 AppointmentDao.saveAppointment(newAppointment);
-                return "Appointment booking successfully";
+                System.out.println("Appointment booking successfully");
             }
         } catch (Exception e) {
-            return "Error: " + e.getMessage();
+            System.out.println( "Error: " + e.getMessage());
         }
     }  
 }

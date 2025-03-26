@@ -1,10 +1,8 @@
 package javaCode;
 
 import java.util.List;
-
 import database.AppointmentDao;
 import database.PatientDao;
-
 import java.util.ArrayList;
 import util.base.Person;
 

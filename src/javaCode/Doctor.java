@@ -1,11 +1,8 @@
 package javaCode;
 
-import java.util.List;
-
+import java.util.*;
 import database.AppointmentDao;
 import database.DoctorDao;
-
-import java.util.ArrayList;
 import util.base.Person;
 
 public class Doctor extends Person{
@@ -60,5 +57,5 @@ public class Doctor extends Person{
         AppointmentDao.saveAppointment(appointment);
     }
 
-    
+   
 }

@@ -12,7 +12,6 @@ import java.util.List;
 import javaCode.Appointment;
 
 public class AppointmentDao {
-
     //save appointment in to database
     public static void saveAppointment(Appointment appointment) {
         String sql = "INSERT INTO appointments (patient_id, doctor_id, appointment_time, duration, status) VALUES (?, ?, ?, ?, ?)";

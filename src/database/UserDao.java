@@ -23,6 +23,23 @@ public class UserDao {
             return false;
         }
     }
+    //delete user
+    public static boolean deleteUserById(int userId) {
+        String query = "DELETE FROM Users WHERE id = ?";
+        
+        try (Connection conn = Database.connect();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
+            stmt.setInt(1, userId);
+            int rowsAffected = stmt.executeUpdate();
+            
+            return rowsAffected > 0; // Returns true if a row was deleted
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
     //return the user when they login successful
     public static Person login(String username, String password){
         Person user = fetchUser(null,username, password,null);
@@ -180,8 +197,13 @@ public class UserDao {
                     case "Patient":
                         user = new Patient(userId, userUsername, Password, firstName, lastName, email, phoneNumber, rs.getString("gender"), rs.getString("dob"), rs.getString("address"));
                         break;
-                    case "Receptionist":
+                    case "Receptionist1":
                         user = new Receptionist(userId, userUsername, Password, firstName, lastName, email, phoneNumber);
+                        user.setrole(role);
+                        break;
+                    case "Receptionist2":
+                        user = new Receptionist(userId, userUsername, Password, firstName, lastName, email, phoneNumber);
+                        user.setrole(role);
                         break;
                     case "Admin":
                         user = new Admin(userId, userUsername,Password, firstName, lastName, email, phoneNumber);

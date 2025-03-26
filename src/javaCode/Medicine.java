@@ -2,33 +2,48 @@ package javaCode;
 
 import java.sql.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.jar.Attributes.Name;
+import database.Database;
 
 public class Medicine {
     private int medicineId;
     private String medicineName;
     private String dosage;
     private double price;
-    private int stock;
-    private LocalDate expiryDate;
     private String description;
+    private LocalDate expiry_date;
 
     // Constructor
-    public Medicine(int medicineId, String medicineName, String dosage, double price, int stock, LocalDate expiryDate, String description) {
+    public Medicine(int medicineId, String medicineName, String dosage, double price, String description,LocalDate expiry_date) {
         this.medicineId = medicineId;
         this.medicineName = medicineName;
         this.dosage = dosage;
-        this.price = price;
-        this.stock = stock;
-        this.expiryDate = expiryDate;
+         this.price = price;
         this.description = description;
+        this.expiry_date = expiry_date;
     }
-
-    private static List<Medicine> medList = new ArrayList<>();
-
+    public Medicine( String medicineName, String dosage, double price, String description,LocalDate expiry_date) {
+        this.medicineName = medicineName;
+        this.dosage = dosage;
+         this.price = price;
+        this.description = description;
+        this.expiry_date = expiry_date;
+    }
+    
+    @Override
+    public String toString() {
+        return String.format(
+            "Medicine Details:\n" +
+            "----------------------------\n" +
+            "ID            : %d\n" +
+            "Name          : %s\n" +
+            "Dosage        : %s\n" +
+            "Price         : $%.2f\n" +
+            "Description   : %s\n" +
+            "Expiry Date   : %s\n" +
+            "----------------------------",
+            medicineId, medicineName, dosage, price, description, expiry_date
+        );
+    }
     // getter
     public int getMedicineID(){
         return medicineId;
@@ -39,17 +54,19 @@ public class Medicine {
     public String getDosage(){
         return dosage;
     }
-    public double getPrice(){
-        return price;
-    }
-    public int getStock(){
-        return stock;
-    }
-    public LocalDate getExpiryDate(){
-        return expiryDate;
-    }
     public String getDescription() {
         return description;
+    }
+    
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+    public LocalDate getExpiryDate(){
+        return this.expiry_date;
     }
 
     //setter
@@ -62,14 +79,8 @@ public class Medicine {
     public void setDosage(String dosage) {
         this.dosage = dosage;
     }
-    public void setPrice(double price) {
-        this.price = price;
-    }
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
-    public void setExpiryDate(LocalDate expiryDate) {
-        this.expiryDate = expiryDate;
+    public void setExpiryDate(LocalDate  expiry_date){
+        this.expiry_date = expiry_date;
     }
     public void setDescription(String description) {
         this.description = description;
@@ -79,18 +90,15 @@ public class Medicine {
 
     //Add medicine to DB
     public void addMedicine(){
-        String sql = "INSERT INTO Medicine (medicine_name, dosage, price, stock, expiry_date, description) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Medicines (medicine_name, dosage, price, description) VALUES (?, ?, ?, ?)";
 
-        try (Connection conn = getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)){
+        try (Connection conn = Database.connect();
+            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)){//auto increment id
             
             stmt.setString(1, this.medicineName);
             stmt.setString(2, this.dosage);
-            stmt.setDouble(3, this.price);
-            stmt.setInt(4, this.stock);
-            stmt.setDate(5, java.sql.Date.valueOf(this.expiryDate));
-            stmt.setString(6, this.description);
-
+            stmt.setDouble(3, price);
+            stmt.setString(4, this.description);
             int rs = stmt.executeUpdate();
             System.out.println(rs + " medicine added successfully!");
         } catch (SQLException e) {
@@ -98,11 +106,11 @@ public class Medicine {
         }
     }
     
-
+    //remove medicine by id
     public void removeMedicineByID(int medicineId){
-        String sql = "DELETE FROM Medicine WHERE medicine_id = ?";
+        String sql = "DELETE FROM Medicines WHERE medicine_id = ?";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = Database.connect();
             PreparedStatement stmt = conn.prepareStatement(sql)){
             
             stmt.setInt(1, medicineId);
@@ -113,16 +121,16 @@ public class Medicine {
         }
     }
 
-    //update medicine
-    public void updateMedicine(){
-        String sql = "UPDATE Medicine SET price = ?, stock = ?, expiry_date = ?, description = ? WHERE medicine_id = ?";
-        try (Connection conn = getConnection();
+    //update medicine base on id -> update medicine should update to inventory
+    public void updateMedicine(int medicineId , double price, int stock, LocalDate expiryDate, String description){
+        String sql = "UPDATE Medicines SET price = ?, stock = ?, expiry_date = ?, description = ? WHERE medicine_id = ?";
+        try (Connection conn = Database.connect();
             PreparedStatement stmt = conn.prepareStatement(sql)){
-            stmt.setDouble(1, this.price);
-            stmt.setInt(2, this.stock);
-            stmt.setDate(3, java.sql.Date.valueOf(this.expiryDate));
-            stmt.setString(4, this.description);
-            stmt.setInt(5, this.medicineId);
+            stmt.setDouble(1, price);
+            stmt.setInt(2, stock);
+            stmt.setDate(3, java.sql.Date.valueOf(expiryDate));
+            stmt.setString(4, description);
+            stmt.setInt(5, medicineId);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -130,9 +138,9 @@ public class Medicine {
 
     //display all medicine
     public void displayMedicine(){
-        String sql = "SELECT * FROM Medicine";
+        String sql = "SELECT * FROM Medicines";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = Database.connect();
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery()){
             
@@ -149,7 +157,7 @@ public class Medicine {
         int medLowStock = 5;
         String sql = "SELECT medicine_name, stock FROM Medicine";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = Database.connect();
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery()){
             
@@ -171,7 +179,7 @@ public class Medicine {
     public static void searchMedByID(int medicineId){
         String sql = "SELECT * FROM Medicine WHERE medicine_id = ?";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = Database.connect();
             PreparedStatement stmt = conn.prepareStatement(sql)){
             
             stmt.setInt(1, medicineId);
@@ -192,7 +200,7 @@ public class Medicine {
         LocalDate currTime = LocalDate.now();
         String sql = "SELECT medicineName, expiryDate FROM Medicine";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = Database.connect();
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery()){
             
@@ -216,14 +224,14 @@ public class Medicine {
     public void quantityCheck(int medicineId){
         String sql = "SELECT medicineName, stock FROM Medicine WHERE medicineId = ?";
     
-        try (Connection conn = getConnection();
+        try (Connection conn = Database.connect();
             PreparedStatement stmt = conn.prepareStatement(sql)){
             
                 stmt.setInt(1, medicineId);
                 ResultSet rs = stmt.executeQuery();
     
                 if(rs.next()){
-                    System.out.println("Stock left for ID " + medicineId + " (" + rs.getString("medicineId") + "): " + rs.getInt(stock));
+                    System.out.println("Stock left for ID " + medicineId + " (" + rs.getString("medicineId") + "): " );
     
                 }else {
                     System.out.println("Medicine with ID " + medicineId + " not found.");

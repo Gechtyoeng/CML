@@ -1,44 +1,50 @@
 package javaCode;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-
-import database.Database;
+import java.time.LocalDate;
+import java.util.*;
+import database.InventoryDao;
 
 public class Prescription {
     private int prescriptionID;
     private int doctorID;
     private int patientID;
-    private List<Medicine> medicines;   //Waiting for Nita class medicines
+    private List<PerscriptionMedicine> medicines = new ArrayList<>();   //Waiting for Nita class medicines
     private double consultationCharge;
     private double medicationCharge;
     private double diagnosisCharge;
     private double nursingCharge;
     private double facilityCharge;
     private double totalCharge;
-    private String dateIssued;
+    LocalDate dateIssued;
 
-    // Database connection details
-    // private static final String URL = "jdbc:mysql://localhost:3306/clinic_db";  //Change latter after merge
-    // private static final String USER = "root";
-    // private static final String PASSWORD = "";
+    //still have bug cannot insert the fee into database but can calculate total
 
     // Fixed charges for hospital services
     private static final double CONSULTATION_FEE = 20.0;  // Doctor fee
-    private static final double MEDICINE_FEE = 5.0;       // Per medicine - change later
+    //private static final double MEDICINE_FEE = 5.0;       // Per medicine - change later
     private static final double DIAGNOSIS_FEE = 15.0;     // Duagnosis fee
     private static final double NURSING_FEE = 10.0;       // Nursing care fee
     private static final double FACILITY_FEE = 30.0;      // Clinic facility use
 
     // Constructor
-    public Prescription(int prescriptionID, int doctorID, int patientID, List<Medicine> medicines, String dateIssued) {
+    public Prescription(int prescriptionID, int doctorID, int patientID,LocalDate dateIssued, double totalCharge) {
         this.prescriptionID = prescriptionID;
         this.doctorID = doctorID;
         this.patientID = patientID;
-        this.medicines = new ArrayList<>(medicines);
         this.dateIssued = dateIssued;
-
+        // Fixed charges
+        this.consultationCharge = CONSULTATION_FEE;
+        this.diagnosisCharge = DIAGNOSIS_FEE;
+        this.nursingCharge = NURSING_FEE;
+        this.facilityCharge = FACILITY_FEE;
+        
+        this.totalCharge = totalCharge;
+    }
+    //for new prescription
+    public Prescription( int doctorID, int patientID) {
+        this.doctorID = doctorID;
+        this.patientID = patientID;
+        this.dateIssued = LocalDate.now();
         // Fixed charges
         this.consultationCharge = CONSULTATION_FEE;
         this.diagnosisCharge = DIAGNOSIS_FEE;
@@ -51,108 +57,130 @@ public class Prescription {
         // Calculate total charge
         calculateTotalCharge();
     }
+    // Getters and setters
+    public int getPrescriptionID() {
+        return prescriptionID;
+    }
+    public List<PerscriptionMedicine> getMedicine(){
+        return this.medicines;
+    }
+    public void setPrescriptionID(int prescriptionID) {
+        this.prescriptionID = prescriptionID;
+    }
+
+    public int getDoctorID() {
+        return doctorID;
+    }
+
+    public void setDoctorID(int doctorID) {
+        this.doctorID = doctorID;
+    }
+
+    public int getPatientID() {
+        return patientID;
+    }
+
+    public void setPatientID(int patientID) {
+        this.patientID = patientID;
+    }
+
+    public double getConsultationCharge() {
+        return consultationCharge;
+    }
+
+    public void setConsultationCharge(double consultationCharge) {
+        this.consultationCharge = consultationCharge;
+    }
+
+    public double getMedicationCharge() {
+        return medicationCharge;
+    }
+
+    public void setMedicationCharge(double medicationCharge) {
+        this.medicationCharge = medicationCharge;
+    }
+
+    public double getDiagnosisCharge() {
+        return diagnosisCharge;
+    }
+
+    public void setDiagnosisCharge(double diagnosisCharge) {
+        this.diagnosisCharge = diagnosisCharge;
+    }
+
+    public double getNursingCharge() {
+        return nursingCharge;
+    }
+
+    public void setNursingCharge(double nursingCharge) {
+        this.nursingCharge = nursingCharge;
+    }
+
+    public double getFacilityCharge() {
+        return facilityCharge;
+    }
+
+    public void setFacilityCharge(double facilityCharge) {
+        this.facilityCharge = facilityCharge;
+    }
+
+    public double getTotalCharge() {
+        return totalCharge;
+    }
+
+    public void setTotalCharge(double totalCharge) {
+        this.totalCharge = totalCharge;
+    }
+
+    public LocalDate getDateIssued() {
+        return dateIssued;
+    }
+
+    public void setDateIssued(LocalDate dateIssued) {
+        this.dateIssued = dateIssued;
+    }
+
+    public List<PerscriptionMedicine> getPerscriptionMedicines() {
+        return this.medicines;
+    }
 
     // Method to calculate total charge
     private void calculateTotalCharge() {
         this.totalCharge = (consultationCharge + medicationCharge + diagnosisCharge + nursingCharge + facilityCharge);
     }
 
-    // Save prescription to database
-    public void savePrescription() {
-        String sql = "INSERT INTO prescriptions (doctor_id, patient_id, consultationCharge, medicationCharge, diagnosisCharge, nursingCharge, facilityCharge, totalCharge, dateIssued) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = Database.connect();
-            PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            pstmt.setInt(1, doctorID);
-            pstmt.setInt(2, patientID);
-            pstmt.setDouble(3, consultationCharge);
-            pstmt.setDouble(4, medicationCharge);
-            pstmt.setDouble(5, diagnosisCharge);
-            pstmt.setDouble(6, nursingCharge);
-            pstmt.setDouble(7, facilityCharge);
-            pstmt.setDouble(9, totalCharge);
-            pstmt.setString(10, dateIssued);
-
-            int affectedRows = pstmt.executeUpdate();
-            if (affectedRows > 0) {
-                ResultSet generatedKeys = pstmt.getGeneratedKeys();
-                if (generatedKeys.next()) {
-                    this.prescriptionID = generatedKeys.getInt(1);
-                }
-            }
-
-            System.out.println("Prescription saved successfully with complete hospital costs.");
-        } catch (SQLException e) {
-            e.printStackTrace();
+    // Add medicine to prescription
+    public  void addMedicine(Medicine medicine, int quantity) {
+        if (medicine == null || quantity <= 0) {
+            System.out.println("Invalid medicine or quantity.");
+            return;
+        }
+        // prescribedMedicines.add(new PerscriptionMedicine(medicine, quantity));
+        // medicationCharge += medicine.getPrice() * quantity;
+        // calculateTotalCharge();
+        if (InventoryDao.reduceStock(medicine.getMedicineID(), quantity)) {
+            this.medicines.add(new PerscriptionMedicine(medicine, quantity));
+            double price = medicine.getPrice();
+            medicationCharge += price * quantity;
+            calculateTotalCharge();
+            System.out.println("Medicine added to prescription and stock updated.");
+        } else {
+            System.out.println("Failed to add medicine. Not enough stock.");
         }
     }
 
-    // Add medicine with cost
-    public void addMedicineCharge(int medicineID, int quantity) {
-        double pricePerUnit = getMedicinePrice(medicineID);
-
-        double totalMedicineCost = (pricePerUnit * quantity);
-        this.medicationCharge += totalMedicineCost;
-
-        calculateTotalCharge();
-        updatePrescription();
-
-        System.out.println("Medicine added. New total charge: $" + totalCharge);
-    }
-
-    // Fetch medicine price from database
-    private double getMedicinePrice(int medicineID) {
-        String sql = "SELECT price FROM medicines WHERE medicineID = ?";
-        double pricePerUnit = 0;
-
-        try (Connection conn = Database.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, medicineID);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                pricePerUnit = rs.getDouble("price");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return pricePerUnit;
-    }
-
-    // Update prescription in database
-    public void updatePrescription() {
-        String sql = "UPDATE prescriptions SET consultationCharge = ?, medicationCharge = ?, diagnosisCharge = ?, nursingCharge = ?, facilityCharge = ?, totalCharge = ? WHERE prescriptionID = ?";
-
-        try (Connection conn = Database.connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setDouble(1, consultationCharge);
-            pstmt.setDouble(2, medicationCharge);
-            pstmt.setDouble(3, diagnosisCharge);
-            pstmt.setDouble(4, nursingCharge);
-            pstmt.setDouble(5, facilityCharge);
-            pstmt.setDouble(6, totalCharge);
-            pstmt.setInt(7, prescriptionID);
-            pstmt.executeUpdate();
-
-            System.out.println("Prescription updated successfully.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // View Prescription Details
-    public void viewPrescriptionDetails() {
-        System.out.println("Prescription ID: " + prescriptionID);
-        System.out.println("Doctor ID: " + doctorID);
-        System.out.println("Patient ID: " + patientID);
-        System.out.println("Date Issued: " + dateIssued);
-        System.out.println("Doctor Consultation Fee: $" + consultationCharge);
-        System.out.println("Medication Charge: $" + medicationCharge);
-        System.out.println("Diagnosis Charge: $" + diagnosisCharge);
-        System.out.println("Nursing and Service Charge: $" + nursingCharge);
-        System.out.println("Clinic Facility Charge: $" + facilityCharge);
-        System.out.println("Total Hospital Bill: $" + totalCharge);
-    }
+    @Override
+    public String toString() {
+    return "Prescription ID: " + prescriptionID + "\n" +
+           "Doctor ID: " + doctorID + "\n" +
+           "Patient ID: " + patientID + "\n" +
+           "Date Issued: " + dateIssued + "\n" +
+           "Doctor Consultation Fee: $" + consultationCharge + "\n" +
+           "Medication Charge: $" + medicationCharge + "\n" +
+           "Diagnosis Charge: $" + diagnosisCharge + "\n" +
+           "Nursing and Service Charge: $" + nursingCharge + "\n" +
+           "Clinic Facility Charge: $" + facilityCharge + "\n" +
+           "Total Hospital Bill: $" + totalCharge + "\n";
+}
+    
 }

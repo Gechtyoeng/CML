@@ -1,34 +1,43 @@
 package javaCode;
 
 import java.sql.*;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDate;
 import util.base.BillingStatus;
 
 public class Billing {
     private int billingId;
     private int patientId;
-    private double totalAmount;
+    private double totalAmount;//total amount from perscription total charge
     private double paidAmount;
     private double balance;
-    private Date billingDate;
+    private LocalDate billingDate;
     private BillingStatus status;
     private String paymentMethod;
-    private List<Prescription> prescriptions;
+    private int prescriptionId;
 
     // Constructor
-    public Billing(int billingId, int patientId, double totalAmount, double paidAmount, BillingStatus status, String paymentMethod, List<Prescription> prescriptions) {
+    public Billing(int billingId, int patientId,int prescriptionId, double totalAmount, double paidAmount, BillingStatus status, String paymentMethod) {
         this.billingId = billingId;
         this.patientId = patientId;
+        this.prescriptionId = prescriptionId;
         this.totalAmount = totalAmount;
         this.paidAmount = paidAmount;
         this.balance = totalAmount - paidAmount;
-        this.billingDate = new Date();
+        this.billingDate = LocalDate.now();
         this.status = status;
         this.paymentMethod = paymentMethod;
-        this.prescriptions = prescriptions;
     }
-
+    public Billing(int billingId, Prescription prescription, double paidAmount, BillingStatus status, String paymentMethod) {
+        this.billingId = billingId;
+        this.patientId = prescription.getPatientID();
+        this.prescriptionId = prescription.getPrescriptionID();
+        this.totalAmount = prescription.getTotalCharge();  // Fetch total charge from Prescription
+        this.paidAmount = paidAmount;
+        this.balance = totalAmount - paidAmount;
+        this.billingDate = LocalDate.now();
+        this.status = status;
+        this.paymentMethod = paymentMethod;
+    }
     // Getters and Setters
     public int getBillingId() {
         return billingId;
@@ -68,7 +77,7 @@ public class Billing {
         return balance;
     }
 
-    public Date getBillingDate() {
+    public LocalDate getBillingDate() {
         return billingDate;
     }
 
@@ -87,14 +96,10 @@ public class Billing {
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
-
-    public List<Prescription> getPrescriptions() {
-        return prescriptions;
+    public int getPrescriptionID(){
+        return this.prescriptionId;
     }
-
-    public void setPrescriptions(List<Prescription> prescriptions) {
-        this.prescriptions = prescriptions;
-    }
+    
 
     // Calculate total cost for the patient (retrieves from database)
     public double calculateTotal(Connection conn, int patientId) throws SQLException {

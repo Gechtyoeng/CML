@@ -1,6 +1,4 @@
 package util.base;
-
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,6 +79,21 @@ public class Person implements Authentication {
     }
     public String getRole() {
         return this.role;
+    }
+    public void setrole(String role){
+        this.role = role;
+    }
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
     
 }
