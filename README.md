@@ -1,18 +1,27 @@
-## Getting Started
+## Clinic Management System
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+A Java-based Clinic Management System with role-based access for **Admin, Doctors, Receptionists, and Pharmacist**.
+This system helps manage appointments, prescriptions, financial reports, and user authentication securely.
 
-## Folder Structure
+## Features
 
-The workspace contains two folders by default, where:
+- **Admin Dashboard**: Manage doctors, patients, and generate financial reports.
+- **Receptionist**: Register patients, book appointments, and make billings.
+- **Pharmicist**: Mangae inventory and manage medicines.
+- **Doctor Dashboard**: View appointments, write prescriptions,and schedule consultations.  
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+## Additional feature
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
+- **User Authentication**: Secure login with password encryption using **BCrypt**.
+- **Database Integration**: Stores user details, appointments, and payments in a relational database.
 
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
+## Tech Stack
+- **Java** (OOP & GUI)
+- **MySQL** (Data Storage)
+- **BCrypt** (Password Hashing)
+- **VS Code** (Development Environment)
 
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+## Security Features
+- **BCrypt Password Hashing** for storing encrypted passwords.
+- **Input Validation** to prevent SQL Injection.
+- **Role-Based Access Control** for different user permissions.
