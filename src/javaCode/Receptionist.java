@@ -7,4 +7,17 @@ public class Receptionist extends Person{
                     String email, String phone) {
         super(id, username, password, firstName, lastName, email, phone, "Receptionist");
     }
+    @Override
+    public String toString() {
+        return "Receptionist{" +
+                "id=" + getId() +
+                ", username='" + getUsername() + '\'' +
+                ", password='" + getPassword() + '\'' +
+                ", firstName='" + getFirstName() + '\'' +
+                ", lastName='" + getLastName() + '\'' +
+                ", email='" + getEmail() + '\'' +
+                ", phone='" + getPhone() + '\'' +
+                '}';
 }
+}
+

@@ -5,6 +5,7 @@ import java.util.Scanner;
 import java.time.*;
 import database.*;
 import javaCode.*;
+//import org.mindrot.jbcrypt.BCrypt;
 public class App {
 
     public static void main(String[] args) {
@@ -13,44 +14,43 @@ public class App {
         UserDao userDAO = new UserDao(); // Create an instance of UserDAo
 
         Person user = null;
-        System.out.println("\n========================================");
-        System.out.println("|  Welcome to Clinic Management System   |");
-        System.out.println("==========================================");
-        
                 while (true) {
+                    clearConsole();
+                    System.out.println("\n========================================");
+                    System.out.println("|  Welcome to Clinic Management System   |");
+                    System.out.println("==========================================");
+                    
                     System.out.println("\n1. Login");
                     System.out.println("2. Close");
                     System.out.print("Choose an option: ");
                     int option = scanner.nextInt();
                     scanner.nextLine(); // Consume newline
+                    switch (option) {
+                        case 1:
+                            System.out.print("Enter username: ");
+                            String username = scanner.nextLine();
+                            System.out.print("Enter password: ");
+                            String password = scanner.nextLine();
+            
+                            //fetching the user base on username and password
+                            user = UserDao.fetchUser(null,username, password,null);
 
-                    if (option == 1) {
-                        System.out.print("Enter username: ");
-                        String username = scanner.nextLine();
-                        System.out.print("Enter password: ");
-                        String password = scanner.nextLine();
-        
-                        //fetching the user base on username and password
-                        user = UserDao.fetchUser(null,username, password,null);
-
-                        if (user == null) {
-                            System.out.println("Invalid username or password. Please try again.");
-                            continue;
-                        }
-                        loadDashboard(user, userDAO, scanner);
-                        return;
+                            if (user == null) {
+                                System.out.println("Invalid username or password. Please try again.");
+                                continue;
+                            }
+                            loadDashboard(user, userDAO, scanner);
+                            break;
+                        case 2:
+                            scanner.close();
+                            return;
+                        default:
+                            System.out.println("Invalid option...");
                     } 
-                    else if (option == 2) {
-                        System.out.println("Exiting the system...");
-                        break;
-                    } 
-                    else {
-                        System.out.println("Invalid choice! Please try again.");
-                        continue;
-                    }
                 }
-                scanner.close();
     }
+        
+    
 
     //function for clear the console 
     public static void clearConsole() {
@@ -66,27 +66,27 @@ public class App {
         switch (user.getRole()) {
             case "Admin":
                 adminMenu(userDAO, scanner);
-                scanner.close();
+               // scanner.close();
                 break;
             case "Doctor":
                 Doctor doctor = (Doctor)user;
                 doctorMenu(scanner,doctor);
-                scanner.close();
+               // scanner.close();
                 break;
             case "Patient":
                 System.out.println("To be continue...");
                 break;
-            case "Receptionist1":
+            case "Receptionist":
                 receptionistMenu(userDAO, scanner);
-                scanner.close();
+               // scanner.close();
                 break;
-            case "Receptionist2":
-                receptionistMenu2(userDAO, scanner);
-                scanner.close();
+            case "Pharmacist":
+                PharmacistMenu(userDAO, scanner);
+               // scanner.close();
                 break;
             default:
                 System.out.println("No specific user role!");
-                scanner.close();
+              //  scanner.close();
                 break;
         }
     }
@@ -101,8 +101,8 @@ public class App {
             System.out.println("=================================");
             System.out.println("1. Doctor management");
             System.out.println("2. Patient management");
-            System.out.println("3. Generate total income");
-            System.out.println("4. Exit");
+            System.out.println("3. view financial report");
+            System.out.println("4. Logout");
             System.out.print("Choose an option: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // Consume newline
@@ -116,7 +116,7 @@ public class App {
                     PatientMangement(userDAO, scanner);
                     break;
                 case 3:
-                    generateReport(userDAO, scanner);//not complete yet
+                    FinancialReport( scanner);
                     break;
                 case 4:
                     return;
@@ -137,7 +137,7 @@ public class App {
             System.out.println("1. Patient management");
             System.out.println("2. Appointment management");
             System.out.println("3. Make Billing");
-            System.out.println("4. Exit");
+            System.out.println("4. Logout");
             System.out.print("Choose an option: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // Consume newline
@@ -161,16 +161,16 @@ public class App {
             }
         }
     }
-    // Receptionist Menu --2
-    public static void receptionistMenu2(UserDao userDAO, Scanner scanner) {
+    // ============Receptionist Menu --2
+    public static void PharmacistMenu(UserDao userDAO, Scanner scanner) {
         while (true) {
             clearConsole();
             System.out.println("\n=================================");
-            System.out.println("  Welcome to Receptionist Menu   ");
+            System.out.println("  Welcome to Pharmacist Menu   ");
             System.out.println("=================================");
             System.out.println("1. Inventory Management");
             System.out.println("2. Medicines Management");
-            System.out.println("3. Exit");
+            System.out.println("3. Logout");
             System.out.print("Choose an option: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // Consume newline
@@ -202,7 +202,7 @@ public class App {
             System.out.println("2. Write perscription");
             System.out.println("3. Book an Appointment");
             System.out.println("4. Update appointment");
-            System.out.println("5. Exit");
+            System.out.println("5. Logout");
             System.out.print("Choose an option: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // Consume newline
@@ -226,7 +226,7 @@ public class App {
                     if(selectedPatient != null){
                         Prescription thisPrescription = new Prescription(doctor.getId(), selectedPatient.getId());
                         int id = PrescriptionDao.savePrescription(thisPrescription);//get id from auto generate 
-
+                       // System.out.println(id);
                         System.out.println("Enter Medicine to add & 0 to finish:");//add medicine and enter 0 to finish
                         Medicine medicine = null;
                         while (true) {
@@ -246,12 +246,11 @@ public class App {
                             }
                            
                         }
-                       
+                        thisPrescription.calculateTotalCharge();
                         PrescriptionDao.savePrescriptionMedicines(id, thisPrescription.getPerscriptionMedicines());
-                        PrescriptionDao.updatePrescription(thisPrescription);
-                        System.out.println("Perscription has been created...");
-                        System.out.println("\nPress Enter to return to menu...");
-                        scanner.nextLine(); // Wait for user input before clearing the screen
+                        PrescriptionDao.updatePrescription(thisPrescription,id);
+                        System.out.println("Press Enter to return to menu...");
+                        scanner.nextLine(); 
                     }  
                     break;
                 case 3:
@@ -265,6 +264,7 @@ public class App {
                         String date = scanner.nextLine();
                         LocalDate selecteddate = BookingSystem.isvalidDate(date);
 
+                        System.out.println("Doctors working time < 9:00-11:00 > and < 14:00-17:00 >");
                         System.out.print("Enter Appointment time (hh:mm):");
                         String time = scanner.nextLine();
                         LocalTime selectedtime = BookingSystem.isValidTime(time);
@@ -279,6 +279,9 @@ public class App {
                             BookingSystem.bookAppointment(doctor, ap_selectedPatient, apptime, duration);
                         }
                         System.out.println("appointment book successful");
+
+                        System.out.println("Press Enter to return to menu...");
+                        scanner.nextLine(); 
                     }else{
                         System.out.println("Booking failed. Invalid doctor or patient.");
                     }
@@ -332,13 +335,15 @@ public class App {
     public static void DoctorMangement(UserDao userDAO, Scanner scanner){
         while (true) {
             clearConsole();
+            System.out.println("=======================================");
             System.out.println("============Doctor Management==========");
-            System.out.println("1. View All Doctor:");
+            System.out.println("=======================================");
+            System.out.println("1. View All Doctor");
             System.out.println("2. Search Doctor");
             System.out.println("3. Register Doctor");
             System.out.println("4. Update Doctor");//base on id
             System.out.println("5. Delete Doctor");
-            System.out.println("6. Exit:");
+            System.out.println("6. Exit");
             System.out.print("Choose an option:");
 
             int choice = scanner.nextInt();
@@ -407,12 +412,14 @@ public class App {
     public static void PatientMangement(UserDao userDAO, Scanner scanner){
         while (true) {
             clearConsole();
+            System.out.println("========================================");
             System.out.println("============Patient Management==========");
-            System.out.println("1. View All Patient:");
-            System.out.println("2. Search Patient:");
-            System.out.println("3. Register Patient:");
-            System.out.println("4. Delete Patient:");
-            System.out.println("5. Exit:");
+            System.out.println("========================================");
+            System.out.println("1. View All Patient");
+            System.out.println("2. Search Patient");
+            System.out.println("3. Register Patient");
+            System.out.println("4. Delete Patient");
+            System.out.println("5. Exit");
             System.out.print("Choose an option:");
 
             int option = scanner.nextInt();
@@ -474,13 +481,64 @@ public class App {
     }
     //reciptionist manament not exist yet
     public static void ReceptionistManagement(UserDao userDAO, Scanner scanner){
+        while (true) {
+            clearConsole();
+            System.out.println("========================================");
+            System.out.println("=========Receptionist Management========");
+            System.out.println("========================================");
+            System.out.println("1. View All Receptionist");
+            System.out.println("2. Search Receptionist");
+            System.out.println("3. Register Receptionist");
+            System.out.println("4. Delete Receptionist");
+            System.out.println("5. Exit");
+            System.out.print("Choose an option:");
+            int opt = scanner.nextInt();
+            scanner.nextLine();
 
+            clearConsole();
+            switch (opt) {
+                case 1:
+                    //view all receptionist
+
+                    break;
+                case 2:
+                    //search receptionist
+
+                    break;
+                case 3:
+                    System.out.println("==========Register Receptionist==========");
+                    registerReceptionist(userDAO, scanner);
+                    break;
+                case 4:
+                    //delete recepionsit
+                    System.out.println("==========Delete Receptionist==========");
+                    System.out.print("Enter Receptionsit id:");
+                    int idToDelete = scanner.nextInt();
+                    scanner.nextLine();
+
+                    if(UserDao.deleteUserById(idToDelete)){
+                        System.out.println("Delete succesfull");
+                    }else{
+                        System.out.println("fail to delete");
+                    }
+                    System.out.println("\nPress Enter to return to menu...");
+                    scanner.nextLine(); // Wait for user input before clearing the screen
+                    break;
+                case 5:
+                    return;
+                default:
+                System.out.println("Invalid option...");
+                    
+            }
+        }
     }
     //appointment management
     public static void AppointmentManagement(UserDao userDAO, Scanner scanner){
         while (true) {
             clearConsole();
+            System.out.println("============================================");
             System.out.println("============Appointment Management==========");
+            System.out.println("============================================");
             System.out.println("1. View All appointment:");
             System.out.println("2. Edit Appointment status:");
             System.out.println("3. Book an appointment:");
@@ -625,7 +683,9 @@ public class App {
     public static void InventoryManagement(UserDao userDAO, Scanner scanner){
         while (true) {
             clearConsole();
+            System.out.println("==========================================");
             System.out.println("============Inventory Management==========");
+            System.out.println("==========================================");
             System.out.println("1. View All Inventory");
             System.out.println("2. Update stock");
             System.out.println("3. search for Item");
@@ -690,7 +750,7 @@ public class App {
                     break;
                 case 4:
                     System.out.println("==========Remove Item=========");
-                        System.out.println("Enter Item ID:");
+                        System.out.print("Enter Item ID:");
                         itemId = scanner.nextInt();
                         scanner.nextLine();
 
@@ -700,7 +760,7 @@ public class App {
                     break;
                 case 5:
                     System.out.println("==========Check Item Quantity=========");
-                        System.out.println("Enter Item ID:");
+                        System.out.print("Enter Item ID:");
                         itemId = scanner.nextInt();
                         scanner.nextLine();
 
@@ -721,7 +781,9 @@ public class App {
     public static void MedicineManagement( Scanner scanner){
         while (true) {
             clearConsole();
+            System.out.println("=========================================");
             System.out.println("============Medicine Management==========");
+            System.out.println("=========================================");
             System.out.println("1. View All Medicine");
             System.out.println("2. search medicine");
             System.out.println("3. Add medicine");
@@ -807,7 +869,7 @@ public class App {
                     break;
                 case 5:
                     System.out.println("==========Check Medicines Quantity=========");
-                    System.out.println("Enter Medicine ID:");
+                    System.out.print("Enter Medicine ID:");
                         medId = scanner.nextInt();
                         scanner.nextLine();
 
@@ -825,18 +887,59 @@ public class App {
         }
     }
     //generate report
-    public static void generateReport(UserDao userDAO, Scanner scanner){
+    public static void FinancialReport(Scanner scanner){
+        while (true) {
+            clearConsole();
+            System.out.println("\n=================================");
+            System.out.println("       Financial Reports         ");
+            System.out.println("=================================");
+            System.out.println("1. View Total Income");
+            System.out.println("2. View Income by Date ");
+            System.out.println("3. View Today Income");
+            System.out.println("4. Exit");
+            System.out.print("Choose an option: ");
+            int opt = scanner.nextInt();
+            scanner.nextLine();
+            clearConsole();
+            switch (opt) {
+                case 1:
+                    BillingDao.totalIncome();
+                    System.out.println("\nPress Enter to return to menu...");
+                    scanner.nextLine(); // Wait for user input before clearing the screen
+                    break;
+                case 2:
+
+                    BillingDao.viewIncomeByDateRange(scanner);
+                    System.out.println("\nPress Enter to return to menu...");
+                    scanner.nextLine(); // Wait for user input before clearing the screen
+                    break;
+
+                case 3:
+                    BillingDao.getTodayIncome();
+                    System.out.println("\nPress Enter to return to menu...");
+                    scanner.nextLine(); // Wait for user input before clearing the screen
+                    break;
+                case 4:
+                return;
+
+                default:
+                System.out.println("In valid option...");
+            }
+        }
     }
     //make billing
     public static void makeBilling(Scanner scanner){
         clearConsole();
+        System.out.println("=====================================");
+        System.out.println("==============Billing================");
+        System.out.println("=====================================");
         System.out.print("Enter Patient ID:");
         int patient_id = scanner.nextInt();
         scanner.nextLine();
 
         Prescription patiePrescription = PrescriptionDao.getLatestPrescriptionByPatientId(patient_id);
         if(patiePrescription != null){
-            System.out.print("Choose Payment Method:");
+            System.out.println("Choose Payment Method:");
             System.out.println("1. cash");
             System.out.println("2. QR");
             System.out.print("Enter your option:");
@@ -856,7 +959,8 @@ public class App {
             Billing patBilling = new Billing(patient_id, patiePrescription, paid_amount, BillingStatus.PAID, method);
             int newID = BillingDao.saveBilling(patBilling);
             if(newID != -1){
-                patBilling.generateInvoice();
+                String thisInvoice = patBilling.generateInvoice();
+                System.out.println(thisInvoice);
             }else{
                 System.out.println("fail to make payment...");
             }
@@ -866,16 +970,16 @@ public class App {
     }
     //  Register Doctor (Only Admin can do this)
     public static void registerDoctor(UserDao userDAO, Scanner scanner) {
-        System.out.print("Enter doctor username: ");
-        String username = scanner.nextLine();
-        System.out.print("Enter doctor password: ");
-        String password = scanner.nextLine();
+      //  System.out.print("Enter doctor username: ");
+        String username = InputUsername(scanner);
+       // System.out.print("Enter doctor password: ");
+        String password = InputPassword(scanner);
         System.out.print("Enter first name: ");
         String firstName = scanner.nextLine();
         System.out.print("Enter last name: ");
         String lastName = scanner.nextLine();
-        System.out.print("Enter email: ");
-        String email = scanner.nextLine();
+       // System.out.print("Enter email: ");
+        String email = InputEmail(scanner);
         System.out.print("Enter phone number: ");
         String phone = scanner.nextLine();
         System.out.print("Enter specialization: ");
@@ -940,16 +1044,16 @@ public class App {
 
     //  Register Receptionist (Only Admin can do this)
     public static void registerReceptionist(UserDao userDAO, Scanner scanner) {
-        System.out.print("Enter Receptionist username: ");
-        String username = scanner.nextLine();
-        System.out.print("Enter Receptionist password: ");
-        String password = scanner.nextLine();
+       // System.out.print("Enter Receptionist username: ");
+        String username = InputUsername(scanner);
+       // System.out.print("Enter Receptionist password: ");
+        String password = InputPassword(scanner);
         System.out.print("Enter first name: ");
         String firstName = scanner.nextLine();
         System.out.print("Enter last name: ");
         String lastName = scanner.nextLine();
-        System.out.print("Enter email: ");
-        String email = scanner.nextLine();
+      //  System.out.print("Enter email: ");
+        String email = InputEmail(scanner);
         System.out.print("Enter phone number: ");
         String phone = scanner.nextLine();
 
@@ -962,16 +1066,17 @@ public class App {
 
     // Register Patient (receptionist and admin)
     public static void registerPatient(UserDao userDAO, Scanner scanner) {
-        System.out.print("Enter patient username: ");
-        String username = scanner.nextLine();
-        System.out.print("Enter patient password: ");
-        String password = scanner.nextLine();
+      //  System.out.print("Enter patient username: ");
+        String username = InputUsername(scanner);
+
+       // System.out.print("Enter patient password: ");
+        String password = InputPassword(scanner);
         System.out.print("Enter first name: ");
         String firstName = scanner.nextLine();
         System.out.print("Enter last name: ");
         String lastName = scanner.nextLine();
-        System.out.print("Enter email: ");
-        String email = scanner.nextLine();
+        //System.out.print("Enter email: ");
+        String email = InputEmail(scanner);
         System.out.print("Enter phone number: ");
         String phone = scanner.nextLine();
         System.out.print("Enter date of birth (YYYY-MM-DD): ");
@@ -988,5 +1093,65 @@ public class App {
         }
     }
   
-      
+     //input username 
+     public static String InputUsername(Scanner scanner){
+        String username;
+        while (true) {
+            System.out.print("Enter username: ");
+            username = scanner.nextLine();
+
+            try {
+                // Check if the username is already taken
+                if (UserDao.isUsernameTaken(username)) {
+                    System.out.println("Username already exists. Please choose a different one.");
+                    continue; // If username is taken, prompt user again
+                } else {
+                    return username;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("An error occurred during registration. Please try again.");
+            }
+        }
+    }
+
+    //input password
+    public static String InputPassword(Scanner scanner){
+        String password;
+        while (true) {
+            System.out.print("Enter password (min 8 characters, 1 special character): ");
+            password = scanner.nextLine();
+
+            if (UserDao.isValidPassword(password)) {
+                System.out.println("Password is valid!");
+                return password;
+                
+            } else {
+                System.out.println(" Password must be at least 8 characters long and contain at least 1 special character.");
+            }
+        }
+    }
+    //input email 
+    public static String InputEmail(Scanner scanner){
+        String email;
+        while (true) {
+            System.out.print("Enter email: ");
+            email = scanner.nextLine();
+
+            try {
+                // Check if the email is already taken
+                if (UserDao.isEmailTaken(email)) {
+                    System.out.println("Email already exists. Please choose a different email.");
+                    continue; // If email is taken, prompt user again
+                } else {
+                    System.out.println("Email is available!");
+                    return email; // Exit loop when a unique email is entered
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println(" An error occurred during registration. Please try again.");
+            }
+        }
+    }
+
 }

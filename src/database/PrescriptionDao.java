@@ -41,19 +41,14 @@ public class PrescriptionDao {
     }
 
     // Method to update prescription in the database
-    public static void updatePrescription(Prescription prescription) {
-        String sql = "UPDATE prescriptions SET consultationCharge = ?, medicationCharge = ?, diagnosisCharge = ?, nursingCharge = ?, facilityCharge = ?, total_Charge = ? WHERE prescription_id = ?";
+    public static void updatePrescription(Prescription prescription,int id) {
+        String sql = "UPDATE prescriptions SET medicationCharge = ?, total_Charge = ? WHERE prescription_id = ?";
 
         try (Connection conn = Database.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setDouble(1, prescription.getConsultationCharge());
-            pstmt.setDouble(2, prescription.getMedicationCharge());
-            pstmt.setDouble(3, prescription.getDiagnosisCharge());
-            pstmt.setDouble(4, prescription.getNursingCharge());
-            pstmt.setDouble(5, prescription.getFacilityCharge());
-            pstmt.setDouble(6, prescription.getTotalCharge());
-            pstmt.setInt(7, prescription.getPrescriptionID());
+            pstmt.setDouble(1, prescription.getMedicationCharge());
+            pstmt.setDouble(2, prescription.getTotalCharge());
+            pstmt.setInt(3, id);
             pstmt.executeUpdate();
 
             System.out.println("Prescription updated successfully.");
@@ -61,6 +56,7 @@ public class PrescriptionDao {
             e.printStackTrace();
         }
     }
+
     //save perscription medicine
     public static void savePrescriptionMedicines(int prescriptionID, List<PerscriptionMedicine> medicines) {
     String sql = "INSERT INTO prescription_medicine (prescription_id, medicine_id, quantity) VALUES (?, ?, ?)";
@@ -79,23 +75,27 @@ public class PrescriptionDao {
         e.printStackTrace();
     }
     }
+
     public static int savePrescription(Prescription prescription) {
-        String sql = "INSERT INTO prescriptions (doctor_id, patient_id, total_charge, date_issued) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO prescriptions (doctor_id, patient_id, consultationCharge, diagnosisCharge, nursingCharge, facilityCharge, date_issued) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = Database.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
     
             pstmt.setInt(1, prescription.getDoctorID());
             pstmt.setInt(2, prescription.getPatientID());
-            pstmt.setDouble(3, prescription.getTotalCharge());
+            pstmt.setDouble(3, prescription.getConsultationCharge());
+            pstmt.setDouble(4, prescription.getDiagnosisCharge());
+            pstmt.setDouble(5, prescription.getNursingCharge());
+            pstmt.setDouble(6, prescription.getFacilityCharge());
             java.sql.Date sqlDate = java.sql.Date.valueOf(prescription.getDateIssued());
-            pstmt.setDate(4, sqlDate); // Set the date in the PreparedStatement
+            pstmt.setDate(7, sqlDate); 
+
     
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows > 0) {
                 ResultSet generatedKeys = pstmt.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     int prescriptionID = generatedKeys.getInt(1);
-                    savePrescriptionMedicines(prescriptionID, prescription.getPerscriptionMedicines());
                     return prescriptionID;
                 }
             }

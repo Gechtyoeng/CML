@@ -2,6 +2,8 @@ package javaCode;
 
 import java.sql.*;
 import java.time.LocalDate;
+
+import database.Database;
 import util.base.BillingStatus;
 
 public class Billing {
@@ -173,26 +175,5 @@ public class Billing {
                 "Payment Method: " + paymentMethod + "\n" +
                 "=======================================";
     }
-
-    // Insert a new bill into the database
-    public void generateBill(Connection conn) throws SQLException {
-        String insertQuery = "INSERT INTO billing (patient_id, total_amount, paid_amount, balance, billing_date, status, payment_method) VALUES (?, ?, ?, ?, NOW(), ?, ?)";
-
-        try (PreparedStatement pstmt = conn.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS)) {
-            pstmt.setInt(1, this.patientId);
-            pstmt.setDouble(2, this.totalAmount);
-            pstmt.setDouble(3, this.paidAmount);
-            pstmt.setDouble(4, this.balance);
-            pstmt.setString(5, this.status.toString());
-            pstmt.setString(6, this.paymentMethod);
-
-            int affectedRows = pstmt.executeUpdate();
-            if (affectedRows > 0) {
-                ResultSet generatedKeys = pstmt.getGeneratedKeys();
-                if (generatedKeys.next()) {
-                    this.billingId = generatedKeys.getInt(1);
-                }
-            }
-        }
-    }
+   
 }

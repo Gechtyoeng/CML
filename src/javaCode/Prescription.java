@@ -17,7 +17,6 @@ public class Prescription {
     private double totalCharge;
     LocalDate dateIssued;
 
-    //still have bug cannot insert the fee into database but can calculate total
 
     // Fixed charges for hospital services
     private static final double CONSULTATION_FEE = 20.0;  // Doctor fee
@@ -53,9 +52,6 @@ public class Prescription {
 
         // Initial medication charge (calculated later)
         this.medicationCharge = 0.0;
-
-        // Calculate total charge
-        calculateTotalCharge();
     }
     // Getters and setters
     public int getPrescriptionID() {
@@ -145,7 +141,7 @@ public class Prescription {
     }
 
     // Method to calculate total charge
-    private void calculateTotalCharge() {
+    public void calculateTotalCharge() {
         this.totalCharge = (consultationCharge + medicationCharge + diagnosisCharge + nursingCharge + facilityCharge);
     }
 
@@ -155,14 +151,12 @@ public class Prescription {
             System.out.println("Invalid medicine or quantity.");
             return;
         }
-        // prescribedMedicines.add(new PerscriptionMedicine(medicine, quantity));
-        // medicationCharge += medicine.getPrice() * quantity;
-        // calculateTotalCharge();
+      
         if (InventoryDao.reduceStock(medicine.getMedicineID(), quantity)) {
             this.medicines.add(new PerscriptionMedicine(medicine, quantity));
             double price = medicine.getPrice();
-            medicationCharge += price * quantity;
-            calculateTotalCharge();
+           this.medicationCharge += price * quantity;
+           
             System.out.println("Medicine added to prescription and stock updated.");
         } else {
             System.out.println("Failed to add medicine. Not enough stock.");

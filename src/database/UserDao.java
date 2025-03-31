@@ -197,11 +197,11 @@ public class UserDao {
                     case "Patient":
                         user = new Patient(userId, userUsername, Password, firstName, lastName, email, phoneNumber, rs.getString("gender"), rs.getString("dob"), rs.getString("address"));
                         break;
-                    case "Receptionist1":
+                    case "Receptionist":
                         user = new Receptionist(userId, userUsername, Password, firstName, lastName, email, phoneNumber);
                         user.setrole(role);
                         break;
-                    case "Receptionist2":
+                    case "Pharmacist":
                         user = new Receptionist(userId, userUsername, Password, firstName, lastName, email, phoneNumber);
                         user.setrole(role);
                         break;
@@ -217,6 +217,45 @@ public class UserDao {
         }
     
         return user;
+    }
+
+    public static boolean isUsernameTaken(String username) {
+        String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
+    
+        try (Connection conn = Database.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next() && rs.getInt(1) > 0) {
+                return true; // Username already exists
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false; // Username is available
+    }
+    // Method to check if the email already exists in the database
+    public static boolean isEmailTaken(String email) {
+        // Query to check if the email exists
+        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
+        try (Connection conn = Database.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                return true; // Email already exists
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false; // Email is available
+    }
+    
+    public static boolean isValidPassword(String password) {
+        // Check password length and if it contains at least one special character
+        return password.length() >= 8 && password.matches(".*[!@#$%^&*(),.?\":{}|<>].*");
     }
     
 }
