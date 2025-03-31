@@ -1,8 +1,6 @@
 package javaCode;
-
 import java.sql.*;
 import java.time.LocalDate;
-
 import database.Database;
 import util.base.BillingStatus;
 

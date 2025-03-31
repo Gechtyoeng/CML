@@ -19,7 +19,17 @@ public class Admin extends Person {
         }
         return true;
     }
-
+    @Override
+    public String toString() {
+        return "Admin Profile: \n" +
+            "ID: " + getId() + "\n" + 
+            "Username: " + getUsername() + "\n" + 
+            "First Name: " + getFirstName() + "\n" + 
+            "Last Name: " + getLastName() + "\n" + 
+            "Email: " + getEmail() + "\n" + 
+            "Phone: " + getPhone() + "\n" + 
+            "Role: Admin";
+    }
     //=============doctor management
     public void addDoctor(Doctor doctor) {
         doctors.add(doctor);

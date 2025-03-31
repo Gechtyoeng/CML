@@ -9,15 +9,14 @@ public class Receptionist extends Person{
     }
     @Override
     public String toString() {
-        return "Receptionist{" +
-                "id=" + getId() +
-                ", username='" + getUsername() + '\'' +
-                ", password='" + getPassword() + '\'' +
-                ", firstName='" + getFirstName() + '\'' +
-                ", lastName='" + getLastName() + '\'' +
-                ", email='" + getEmail() + '\'' +
-                ", phone='" + getPhone() + '\'' +
-                '}';
+        return "Receptionst Profile: \n" +
+        "ID: " + getId() + "\n" + 
+        "Username: " + getUsername() + "\n" + 
+        "First Name: " + getFirstName() + "\n" + 
+        "Last Name: " + getLastName() + "\n" + 
+        "Email: " + getEmail() + "\n" + 
+        "Phone: " + getPhone() + "\n" + 
+        "Role: "+ getRole();
 }
 }
 

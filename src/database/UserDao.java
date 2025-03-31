@@ -3,9 +3,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Scanner;
+
 import javaCode.*;
 import util.base.Person;
-
+import org.mindrot.jbcrypt.BCrypt;
 
 public class UserDao {
     public boolean login(String username, String password, String role) {
@@ -92,7 +94,7 @@ public class UserDao {
     }
 
     //Signup for Doctors
-    public boolean signupDoctor(String username, String password, String firstName, String lastName,
+    public static boolean signupDoctor(String username, String password, String firstName, String lastName,
                                     String email, String phoneNumber, String specialization) {
 
         int doctorId = registerUser(username, password, firstName, lastName, email, phoneNumber,"Doctor");
@@ -114,7 +116,7 @@ public class UserDao {
     }
 
     //Signup for Receptionists
-    public boolean signupReceptionist(String username, String password, String firstName, String lastName,
+    public static boolean signupReceptionist(String username, String password, String firstName, String lastName,
                                            String email, String phoneNumber) {
         int re_id = registerUser(username, password, firstName, lastName, email, phoneNumber,"Receptionist");
 
@@ -133,7 +135,7 @@ public class UserDao {
     }
 
     //Signup for Patients
-    public boolean signupPatient(String username, String password, String firstName, String lastName,
+    public static boolean signupPatient(String username, String password, String firstName, String lastName,
                                 String email, String phoneNumber,String gender, String dob, String address) {
     
         //get patient id
@@ -155,6 +157,30 @@ public class UserDao {
         }
             return false;
     }
+
+    //check the password match with the hash or not
+    public static boolean authenticateUser(String username, String enteredPassword) {
+        String query = "SELECT password FROM users WHERE username = ?";
+        
+        try (Connection conn = Database.connect();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                String storedHashedPassword = rs.getString("password");  // Hashed password from DB
+                
+                // Compare the entered password with the hashed password
+                return BCrypt.checkpw(enteredPassword, storedHashedPassword);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return false; // User not found or error occurred
+    }
+
 
     //this funtion use to fetch user base on their role by using id or username & password or name
     public static Person fetchUser(Integer id, String username, String password, String name) {
@@ -218,7 +244,7 @@ public class UserDao {
     
         return user;
     }
-
+    //method to check if the username already exist in our database
     public static boolean isUsernameTaken(String username) {
         String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
     
@@ -236,6 +262,7 @@ public class UserDao {
         }
         return false; // Username is available
     }
+
     // Method to check if the email already exists in the database
     public static boolean isEmailTaken(String email) {
         // Query to check if the email exists
@@ -257,5 +284,93 @@ public class UserDao {
         // Check password length and if it contains at least one special character
         return password.length() >= 8 && password.matches(".*[!@#$%^&*(),.?\":{}|<>].*");
     }
-    
+    //method for allow user to chage their password after they login
+    public static boolean changePassword(String username, Scanner scanner) {
+        String querySelect = "SELECT password FROM users WHERE username = ?";
+        String queryUpdate = "UPDATE users SET password = ? WHERE username = ?";
+
+        try (Connection conn = Database.connect();
+             PreparedStatement selectStmt = conn.prepareStatement(querySelect)) {
+            
+            selectStmt.setString(1, username);
+            ResultSet rs = selectStmt.executeQuery();
+            
+            if (rs.next()) {
+                String storedHashedPassword = rs.getString("password");
+
+                // Verify Old Password
+                System.out.print("Enter your current password: ");
+                String oldPassword = scanner.nextLine();
+
+                if (!BCrypt.checkpw(oldPassword, storedHashedPassword)) {
+                    System.out.println("Incorrect password. Try again.");
+                    return false;
+                }
+
+                //Enter New Password & Validate
+                String newPassword;
+                while (true) {
+                    System.out.print("Enter new password (min 8 chars, 1 special char): ");
+                    newPassword = scanner.nextLine();
+
+                    if (isValidPassword(newPassword)) {
+                        break;
+                    } else {
+                        System.out.println("Password must be at least 8 characters long and contain at least 1 special character.");
+                    }
+                }
+
+                // Hash New Password & Update
+                String hashedNewPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
+
+                try (PreparedStatement updateStmt = conn.prepareStatement(queryUpdate)) {
+                    updateStmt.setString(1, hashedNewPassword);
+                    updateStmt.setString(2, username);
+                    updateStmt.executeUpdate();
+                    System.out.println("Password changed successfully!");
+                    return true;
+                }
+            } else {
+                System.out.println("User not found.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    //this function use to hash all password in database
+    public static void updatePasswords() {
+        String selectQuery = "SELECT id, password FROM users";
+        String updateQuery = "UPDATE users SET password = ? WHERE id = ?";
+
+        try (Connection conn = Database.connect();
+             PreparedStatement selectStmt = conn.prepareStatement(selectQuery);
+             ResultSet rs = selectStmt.executeQuery()) {
+            
+            while (rs.next()) {
+                int userId = rs.getInt("id");
+                String password = rs.getString("password");
+
+                // Only hash the password if it is not already hashed
+                if (!isHashed(password)) {
+                    String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
+
+                    try (PreparedStatement updateStmt = conn.prepareStatement(updateQuery)) {
+                        updateStmt.setString(1, hashedPassword);
+                        updateStmt.setInt(2, userId);
+                        updateStmt.executeUpdate();
+                        System.out.println("Updated password for user ID: " + userId);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Check if the password is already hashed
+    public static boolean isHashed(String password) {
+        return password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$");
+    }
 }
+
